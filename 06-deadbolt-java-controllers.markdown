@@ -1,4 +1,4 @@
-# D2 Java Controllers #
+# Java controller constraints #
 If you like annotations in Java code, you're in for a treat.  If you don't, this may be a good time to consider the Scala version.
 
 As with previous chapter, here is a a breakdown of all the Java annotation-driven interceptors available in D2 Java, with parameters, usages and tips and tricks.
@@ -7,7 +7,20 @@ As with previous chapter, here is a a breakdown of all the Java annotation-drive
 Static constraints, such as Restrict, are implemented entirely within D2 because it can finds all the information needed to determine authorisation automatically.  For example, if a constraint requires two roles, "foo" and "bar" to be present, the logic behind the Restrict constraint knows it just needs to check the roles of the current roles holder.
 
 ### SubjectPresent ###
-todo
+SubjectPresent is one of the simplest constraints offered by D2.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access if the result is not null.
+
+    | Parameter               | Type                             | Notes                               |
+    ----------------------------------------------------------------------------------------------------
+    | context                 | String                           | A hint to indicate the content      | 
+    |                         |                                  | expected in the response.           |
+    ----------------------------------------------------------------------------------------------------
+    | handler                 | Class<? extends DeadboltHandler> | The class of a DeadboltHandler to   |
+    |                         |                                  | use in place of the default one.    |
+    ----------------------------------------------------------------------------------------------------
+    | deferred                | Boolean                          | If true, the interceptor will not   |
+    |                         |                                  | be applied until a DeadboltDeferred |
+    |                         |                                  | annotation is encountered.          |
+    ----------------------------------------------------------------------------------------------------
 
 ### SubjectNotPresent ###
 todo
