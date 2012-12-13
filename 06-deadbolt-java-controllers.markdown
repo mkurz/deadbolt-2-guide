@@ -9,18 +9,17 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 ### SubjectPresent ###
 SubjectPresent is one of the simplest constraints offered by D2.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access if the result is not null.
 
-    | Parameter               | Type                             | Notes                               |
-    ----------------------------------------------------------------------------------------------------
-    | context                 | String                           | A hint to indicate the content      | 
-    |                         |                                  | expected in the response.           |
-    ----------------------------------------------------------------------------------------------------
-    | handler                 | Class<? extends DeadboltHandler> | The class of a DeadboltHandler to   |
-    |                         |                                  | use in place of the default one.    |
-    ----------------------------------------------------------------------------------------------------
-    | deferred                | Boolean                          | If true, the interceptor will not   |
-    |                         |                                  | be applied until a DeadboltDeferred |
-    |                         |                                  | annotation is encountered.          |
-    ----------------------------------------------------------------------------------------------------
+|Parameter                |Type                              |Notes                                  |
+|-------------------------|----------------------------------|---------------------------------------|
+| context                 | String                           | A hint to indicate the content        | 
+|                         |                                  | expected in the response.             |
+|-------------------------|----------------------------------|---------------------------------------|
+| handler                 | Class<? extends DeadboltHandler> | The **class** of a DeadboltHandler to |
+|                         |                                  | use in place of the default one.      |
+|-------------------------|----------------------------------|---------------------------------------|
+| deferred                | Boolean                          | If true, the interceptor will not be  |
+|                         |                                  | applied until a DeadboltDeferred      |
+|                         |                                  | annotation is encountered.            |
 
 ### SubjectNotPresent ###
 todo
