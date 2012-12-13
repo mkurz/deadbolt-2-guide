@@ -1,0 +1,6 @@
+# Using Deadbolt 2 with Play 2 Scala projects #
+Frogs have less DNA than humans.  This may seem odd, given the comparative size, but the explanation (or, at least, the explanation I have been given) is that frogs are programmed to deal with given environmental situations.  It's too hot?  Do X.  It's too cold?  Do Y.
+
+Humans, on the other hand, have a more flexible genetic programming that essentially allows for improvisation in known or unknown situations.
+
+What does this have to do with Scala in general, and D2 in particular?  Deadbolt 2 Scala has equivalent capabilities to Deadbolt 2 Java, but with less code and fewer actions.  Specifically, there are the same number of template tags,  but quite a few fewer actions.  Play 2 for Scala uses action composition in place of annotation-driven interceptors, and so there are no controller-level constraints.  As a result, there is no need for the equivalents of `@DeadboltDeferred`, `@BeforeAccess` or `@Unrestricted`.  These represent 33% of the interceptors of D2 Java.

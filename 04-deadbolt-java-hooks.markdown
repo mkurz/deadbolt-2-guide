@@ -7,17 +7,6 @@ For any module - or framework - to be useable, it must provide a mechanism by wh
 
 Despite the use of the definite article in the section title, you can have as many Deadbolt handlers in your app as you wish.  If you explicitly specify handlers at the annotation or tag level instead of using the default handler specified in application.conf, you will see the advantage of this.
 
-Before we take a look at these all-important methods, let's have a quick look at a day in the life of a HTTP request.
-
-A HTTP request has a life cycle.  At a high level, it is
-
-* Sent
-* Received
-* Processed
-* Answered
-
-The _processed_ point is where our web applications live.  In a sense, the high level life cycle is repeated again here, as the request is sent from the container into the application, received by the app, processed and answered.  We're now in navel-gazing territory, so let's cut to the chase and say that interception occurs _between_ the received and processed phases _within_ the high-level processed phase.
-
 ### Result beforeAuthCheck(Http.Context context) ###
   To achieve this goal, D2 invokes the beforeRoleCheck method of your DeadboltHandler
 

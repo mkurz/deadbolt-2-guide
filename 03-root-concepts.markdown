@@ -23,7 +23,7 @@ The controller layer is most vunerable part of your application to external atta
 Controller authorisation blocks or allows access to a method.  Whereas template restrictions are essentially a boolean evaluation - "if user satisfies these conditions, then...", controller authorisation is quite a bit more powerful.  Specifically, while an authorised result is generated from your application code, unauthorised results can be customised as required; you can return any status code you like along with any content you like.  If you're feeling particularly nasty, why not send a 302 redirect to a not-suitable-for-work website?  If you want to, the option is there.
 
 ## Actors ##
-D2 has three interfaces which can be used to hook authorisation into your application - `Subject`, `Role` and `Permission`.
+D2 has three interfaces which can be used to represent authorisation entities in your application - `Subject`, `Role` and `Permission`.
 
 ### Subject ###
 The core actor of D2 is the `be.objectify.deadbolt.core.models.Subject` interface.  This should be implemented by whatever your application considers to be an authorisable entity - in other words, a User.  Its sole purpose is to give access to the rights and permissions held by the user.
@@ -52,3 +52,15 @@ A `Permission`, just like a `Role`, is essentially a wrapper around a string.  I
 As `Permission` is an interface, it can be implemented as a class or an enum.
 
 If you do not require permissions in your application, you do not need to implement this interface - just return an empty list from `Subject#getPermissions`.
+
+## Hooks ##
+There are two hooks that can be used to integrate D2 into your application - `DeadboltHandler` and `DynamicResourceHandler´.  In D2 Java, these are represented by interfaces; In D2 Scala, they are traits.  There are some small differences between them caused by design differences with the Java and Scala APIs themselves, so exact breakdowns of these types will be covered in the language-specific sections.  For now, it's enough to remind ourselves of where we are working in terms of a HTTP request.
+
+A HTTP request has a life cycle.  At a high level, it is
+
+* Sent
+* Received
+* Processed
+* Answered
+
+The _processed_ point is where our web applications live.  In a sense, the high level life cycle is repeated again here, as the request is sent from the container into the application, received by the app, processed and answered.  D2 controller constraints occur at the point where the container (the Play server, in this case) hands the request over to the application;  D2 templates work during the processing phase as a response body is rendered.  Both places are where any `DeadboltHandler` and `DynamicResourceHandler` instances are active.
