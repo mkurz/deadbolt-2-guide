@@ -8,19 +8,32 @@ Back in September 2010, I was embarking on my first project using the Play! Fram
 
 Deadbolt 2 was released at the same time as Play 2.0, and was essentially the logic of Deadbolt 1 exposed in the Play 2 style.  Nine months after that initial release - nine months, I should add, of woefully inadequate Scala support - I re-designed the architecture to a more modular approach.  There is now a core module written in Java, and separate idiomatic modules for Java and Scala.  This is slightly different to the architecture of Play 2 itself, where the core and the Scala API are co-located.
 
-## Authorisation? Shouldn't that be authorization? ##
-I'm British.  Deal with it.
+The user guide for Deadbolt 1 - which I can still highly recommend if you need authorisation support in your Play 1 apps - starts with this:
+
+> Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax. It is based on the 
+> original Secure module that comes with the Play! framework.
+> 
+> Note that Deadbolt doesn’t provide authentication! You can still use the existing Secure module alongside Deadbolt to provide authentication, and in cases where 
+> authentication is handled outside your app you can just hook up the authorisation mechanism to whatever auth system is used.
+
+How much of this still holds true for Deadbolt 2?  More than 50% and less than 100%, give or take. 
+
+* Deadbolt is still used for authorisation
+* It can control access to controllers
+* It can control access to templates
+* The capabilities have expanded beyond the original role-based static checks
+* You can (or should be able to) combine Deadbolt 2 with any authentication system
 
 ## Acknowledgements ##
 This space for hire!  Review this text, and get your name here :)
 
 ## Thanks ##
-Don't worry, the touchy-feely stuff is nearly out of the way.
+&lt;touchyFeely&gt;
 
 I'd like to thank Guilluame Bort for introducing Play! in the first place, and all the people who have developed, patched and improved it ever since.
 
-I would also like to thank everyone that tried Deadbolt, asked for features, reported bugs and generally drove me to improve it.  Your constant, irritating requests and badgering questions have made Deadbolt what it is today =)
+I would also like to thank everyone that tried Deadbolt, asked for features, reported bugs and generally driven me to improve it.  Your constant, irritating requests and badgering questions have made Deadbolt what it is today.
 
 Finally, and always, to Greet and Lotte.
 
-End of touchy feely stuff.
+&lt;/touchyFeely&gt;
