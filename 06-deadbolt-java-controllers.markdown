@@ -23,11 +23,11 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 |                         |                                  | to `DeadboltHandler#onAccessFailure`.   The      |
 |                         |                                  | value of this parameter is completely arbitrary. |
 |-------------------------|----------------------------------|--------------------------------------------------|
-| handler                 | Class<? extends DeadboltHandler> | The **class** of a DeadboltHandler to use  in    |
+| handler                 | Class<? extends DeadboltHandler> | The **class** of a `DeadboltHandler` to use  in  |
 |                         |                                  | in place of the default one.                     |
 |-------------------------|----------------------------------|--------------------------------------------------|
 | deferred                | Boolean                          | If true, the interceptor will not be applied     |
-|                         |                                  | until a DeadboltDeferred annotation is           |
+|                         |                                  | until a `DeadboltDeferred` annotation is         |
 |                         |                                  | encountered.                                     |
 
 ##### Example uses #####
@@ -80,11 +80,11 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 |                         |                                  | to `DeadboltHandler#onAccessFailure`.   The      |
 |                         |                                  | value of this parameter is completely arbitrary. |
 |-------------------------|----------------------------------|--------------------------------------------------|
-| handler                 | Class<? extends DeadboltHandler> | The **class** of a DeadboltHandler to use  in    |
+| handler                 | Class<? extends DeadboltHandler> | The **class** of a `DeadboltHandler` to use  in  |
 |                         |                                  | in place of the default one.                     |
 |-------------------------|----------------------------------|--------------------------------------------------|
 | deferred                | Boolean                          | If true, the interceptor will not be applied     |
-|                         |                                  | until a DeadboltDeferred annotation is           |
+|                         |                                  | until a `DeadboltDeferred` annotation is         |
 |                         |                                  | encountered.                                     |
 
 ##### Example uses #####
@@ -128,8 +128,8 @@ The Restrict constraint requires that a) there is a subject present, and b) the 
 ##### Notation #####
 The role names specified in the annotation can take two forms.
 
-1. Exact form - the subject must have a role whose name matches the required role exactly.  For example, for a constraint ´@Restrict("foo")` the Subject *must* have a `Role` whose name is "foo".
-2. Negated form - if the required role starts starts with a !, the constraint is negated.  For example, for a constraint ´@Restrict("!foo")` the Subject *must not* have a `Role` whose name is "foo".
+1. Exact form - the subject must have a role whose name matches the required role exactly.  For example, for a constraint `@Restrict("foo")` the Subject *must* have a `Role` whose name is "foo".
+2. Negated form - if the required role starts starts with a !, the constraint is negated.  For example, for a constraint `@Restrict("!foo")` the Subject *must not* have a `Role` whose name is "foo".
 
 ##### Scope #####
 `@Restrict` can be used at the class or method level.
@@ -146,11 +146,11 @@ The role names specified in the annotation can take two forms.
 |                         |                                  | to `DeadboltHandler#onAccessFailure`.   The      |
 |                         |                                  | value of this parameter is completely arbitrary. |
 |-------------------------|----------------------------------|--------------------------------------------------|
-| handler                 | Class<? extends DeadboltHandler> | The **class** of a DeadboltHandler to use  in    |
+| handler                 | Class<? extends DeadboltHandler> | The **class** of a `DeadboltHandler` to use  in  |
 |                         |                                  | in place of the default one.                     |
 |-------------------------|----------------------------------|--------------------------------------------------|
 | deferred                | Boolean                          | If true, the interceptor will not be applied     |
-|                         |                                  | until a DeadboltDeferred annotation is           |
+|                         |                                  | until a `DeadboltDeferred` annotation is         |
 |                         |                                  | encountered.                                     |
 
 ##### Example uses #####
@@ -227,11 +227,11 @@ The Restrictions constraint requires that a) there is a subject present, and b) 
 |                         |                                  | to `DeadboltHandler#onAccessFailure`.   The      |
 |                         |                                  | value of this parameter is completely arbitrary. |
 |-------------------------|----------------------------------|--------------------------------------------------|
-| handler                 | Class<? extends DeadboltHandler> | The **class** of a DeadboltHandler to use  in    |
+| handler                 | Class<? extends DeadboltHandler> | The **class** of a `DeadboltHandler` to use  in  |
 |                         |                                  | in place of the default one.                     |
 |-------------------------|----------------------------------|--------------------------------------------------|
 | deferred                | Boolean                          | If true, the interceptor will not be applied     |
-|                         |                                  | until a DeadboltDeferred annotation is           |
+|                         |                                  | until a `DeadboltDeferred` annotation is         |
 |                         |                                  | encountered.                                     |
 
 ##### Example uses #####
