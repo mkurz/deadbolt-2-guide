@@ -31,7 +31,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 |                         |                                  | encountered.                                     |
 
 ##### Example uses #####
-1. Deny access to any method of a controller unless there is a user present.
+*Deny access to any method of a controller unless there is a user present.*
 
     \@SubjectPresent
     public class MyController extends Controller \{
@@ -48,7 +48,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
     \}
 
 
-2. Deny access to a single method of a controller unless there is a user present.
+*Deny access to a single method of a controller unless there is a user present.*
 
     public class MyController extends Controller \{
 
@@ -88,7 +88,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 |                         |                                  | encountered.                                     |
 
 ##### Example uses #####
-1. Deny access to any method of a controller if there is a user present.
+*Deny access to any method of a controller if there is a user present.*
 
     @SubjectNotPresent
     public class MyController extends Controller {
@@ -105,7 +105,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
     }
 
 
-2. Deny access to a single method of a controller if there is a user present.
+*Deny access to a single method of a controller if there is a user present.*
 
     public class MyController extends Controller {
 
@@ -154,7 +154,7 @@ The role names specified in the annotation can take two forms.
 |                         |                                  | encountered.                                     |
 
 ##### Example uses #####
-1. For every action in a controller, require the `Subject` to have *editor* and *viewer* roles.
+*For every action in a controller, require the `Subject` to have *editor* and *viewer* roles.*
 
     @Restrict({"editor", "viewer"})
     public class MyController extends Controller {
@@ -170,7 +170,7 @@ The role names specified in the annotation can take two forms.
         }
     }
 
-2. Have different requires for each action in the controller.  Note the, because only one role is specified, the annotation doesn't require array notation.
+*Have different requires for each action in the controller.  Note the, because only one role is specified, the annotation doesn't require array notation.*
 
     public class MyController extends Controller {
 
@@ -187,7 +187,7 @@ The role names specified in the annotation can take two forms.
         }
     }
 
-3. Ensure the ´Subject` has the *editor* but not the *viewer* role
+*Ensure the ´Subject` has the *editor* but not the *viewer* role.*
 
     @Restrict({"editor", "!viewer"})
     public class MyController extends Controller {
@@ -237,7 +237,7 @@ The Restrictions constraint requires that a) there is a subject present, and b) 
 ##### Example uses #####
 To avoid repetition, each example here is shown at the class level.  They would be equally valid at the method level.
 
-1. Require the `Subject` to have *editor* or *viewer* roles.
+*Require the `Subject` to have *editor* or *viewer* roles.*
 
     @Restrictions({@And("editor"), @And("viewer")})
     public class MyController extends Controller {
@@ -253,7 +253,7 @@ To avoid repetition, each example here is shown at the class level.  They would 
         }
     }
 
-2. Require the `Subject` to have *customer* AND "viewer", OR "support" AND *viewer* roles.
+*Require the `Subject` to have *customer* AND "viewer", OR "support" AND *viewer* roles.*
 
     @Restrictions({@And("customer", "viewer"), @And("support", "viewer")})
     public class MyController extends Controller {
@@ -265,7 +265,7 @@ To avoid repetition, each example here is shown at the class level.  They would 
         }
     }
 
-2. Require the `Subject` to have *customer* AND NOT "viewer", OR "support" AND NOT *viewer* roles.
+*Require the `Subject` to have *customer* AND NOT "viewer", OR "support" AND NOT *viewer* roles.*
 
     @Restrictions({@And("customer", "!viewer"), @And("support", "!viewer")})
     public class MyController extends Controller {
