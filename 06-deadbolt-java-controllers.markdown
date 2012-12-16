@@ -30,8 +30,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 |                         |                                  | until a `DeadboltDeferred` annotation is         |
 |                         |                                  | encountered.                                     |
 
-##### Example uses #####
-*Deny access to any method of a controller unless there is a user present.*
+##### Example 1. Deny access to any method of a controller unless there is a user present #####
 
     @SubjectPresent
     public class MyController extends Controller {
@@ -48,7 +47,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
     }
 
 
-*Deny access to a single method of a controller unless there is a user present.*
+##### Example 2. Deny access to a single method of a controller unless there is a user present #####
 
     public class MyController extends Controller {
 
@@ -64,6 +63,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
         }
     }
 
+ {pagebreak} 
 
 #### SubjectNotPresent ####
 `SubjectNotPresent` is the opposite in functionality of `SubjectPresent`.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access only if the result is null.
@@ -87,8 +87,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 |                         |                                  | until a `DeadboltDeferred` annotation is         |
 |                         |                                  | encountered.                                     |
 
-##### Example uses #####
-*Deny access to any method of a controller if there is a user present.*
+##### Example 1. Deny access to any method of a controller if there is a user present #####
 
     @SubjectNotPresent
     public class MyController extends Controller {
@@ -105,7 +104,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
     }
 
 
-*Deny access to a single method of a controller if there is a user present.*
+##### Example 2. Deny access to a single method of a controller if there is a user present #####
 
     public class MyController extends Controller {
 
@@ -121,6 +120,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
         }
     }
 
+ {pagebreak} 
 
 #### Restrict ####
 The Restrict constraint requires that a) there is a subject present, and b) the subject has ALL the roles specified in the constraint.  The key thing to remember about ´Restrict´ is that it ANDs together the role names.
@@ -153,8 +153,7 @@ The role names specified in the annotation can take two forms.
 |                         |                                  | until a `DeadboltDeferred` annotation is         |
 |                         |                                  | encountered.                                     |
 
-##### Example uses #####
-*For every action in a controller, require the `Subject` to have *editor* and *viewer* roles.*
+##### Example 1. For every action in a controller, require the `Subject` to have *editor* and *viewer* roles #####
 
     @Restrict({"editor", "viewer"})
     public class MyController extends Controller {
@@ -170,7 +169,7 @@ The role names specified in the annotation can take two forms.
         }
     }
 
-*Have different requires for each action in the controller.  Note the, because only one role is specified, the annotation doesn't require array notation.*
+##### Example 2. Have different requires for each action in the controller.  Note the, because only one role is specified, the annotation doesn't require array notation #####
 
     public class MyController extends Controller {
 
@@ -187,7 +186,7 @@ The role names specified in the annotation can take two forms.
         }
     }
 
-*Ensure the ´Subject` has the *editor* but not the *viewer* role.*
+##### Example 3. Ensure the ´Subject` has the *editor* but not the *viewer* role #####
 
     @Restrict({"editor", "!viewer"})
     public class MyController extends Controller {
@@ -203,6 +202,7 @@ The role names specified in the annotation can take two forms.
         }
     }
 
+ {pagebreak} 
 
 #### Restrictions ####
 The Restrictions constraint requires that a) there is a subject present, and b) the subject has ALL the roles specified in one of the _role groups_ of the constraint.  `Restrictions` can be thought of as a way to OR together AND'd constraints, equivalent to `@Restrict(x) OR @Restrict(y) OR @Restrict(z)`.
@@ -234,10 +234,7 @@ The Restrictions constraint requires that a) there is a subject present, and b) 
 |                         |                                  | until a `DeadboltDeferred` annotation is         |
 |                         |                                  | encountered.                                     |
 
-##### Example uses #####
-To avoid repetition, each example here is shown at the class level.  They would be equally valid at the method level.
-
-*Require the `Subject` to have *editor* or *viewer* roles.*
+##### Example 1. Require the `Subject` to have *editor* or *viewer* roles #####
 
     @Restrictions({@And("editor"), @And("viewer")})
     public class MyController extends Controller {
@@ -253,7 +250,7 @@ To avoid repetition, each example here is shown at the class level.  They would 
         }
     }
 
-*Require the `Subject` to have *customer* AND "viewer", OR "support" AND *viewer* roles.*
+##### Example 2. Require the `Subject` to have *customer* AND "viewer", OR "support" AND *viewer* roles #####
 
     @Restrictions({@And("customer", "viewer"), @And("support", "viewer")})
     public class MyController extends Controller {
@@ -265,7 +262,7 @@ To avoid repetition, each example here is shown at the class level.  They would 
         }
     }
 
-*Require the `Subject` to have *customer* AND NOT "viewer", OR "support" AND NOT *viewer* roles.*
+##### Example 2. Require the `Subject` to have *customer* AND NOT "viewer", OR "support" AND NOT *viewer* roles #####
 
     @Restrictions({@And("customer", "!viewer"), @And("support", "!viewer")})
     public class MyController extends Controller {
@@ -277,19 +274,28 @@ To avoid repetition, each example here is shown at the class level.  They would 
         }
     }
 
+ {pagebreak} 
 
 #### Unrestricted ####
 todo
 
+ {pagebreak} 
+
 ## Dynamic constraints ##
 Dynamic constraints are, as far as D2 is concerned, completely arbitrary.  The logic behind the constraint comes entirely from a third party.
+
+ {pagebreak} 
 
 #### Dynamic ####
 todo
 
+ {pagebreak} 
+
 #### Pattern ####
 todo
 
+ {pagebreak} 
+ 
 ## Deferring method-level annotation-driven interceptors ##
 Play 2 executes method-level annotations before controller-level annotations. This can cause issues when, for example, you want a particular action to be applied for method and before the method annotations. A good example is `Security.Authenticated(Secured.class)`, which sets a user’s user name for `request().username()`. Combining this with method-level annotations that require a user would fail, because the user would not be present at the time the method interceptor is invoked.
 
