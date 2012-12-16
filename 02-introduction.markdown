@@ -6,8 +6,6 @@ I hope this document (booklet-like or otherwise) will prove useful as you integr
 ## History ##
 Back in September 2010, I was embarking on my first project using the Play! Framework (version 1.03.2 for fans of unnecessary detail) and discovering the Secure module it shipped with was unsuitable for the required authorisation.  As a result, Deadbolt 1.0 was written to provide AND/OR/NOT support for roles.  Sometime later, dynamic rule support was added and other new features would be released as use cases and bug reports cropped up.
 
-Deadbolt 2 was released at the same time as Play 2.0, and was essentially the logic of Deadbolt 1 exposed in the Play 2 style.  Nine months after that initial release - nine months, I should add, of woefully inadequate Scala support - I re-designed the architecture to a more modular approach.  There is now a core module written in Java, and separate idiomatic modules for Java and Scala.  This is slightly different to the architecture of Play 2 itself, where the core and the Scala API are co-located.
-
 The user guide for Deadbolt 1 - which I can still highly recommend if you need authorisation support in your Play 1 apps - starts with this:
 
 > Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax. It is based on the 
@@ -22,7 +20,22 @@ How much of this still holds true for Deadbolt 2?  More than 50% and less than 1
 * It can control access to controllers
 * It can control access to templates
 * The capabilities have expanded beyond the original role-based static checks
+* Deadbolt 2 is based on Deadbolt 1
 * You can (or should be able to) combine Deadbolt 2 with any authentication system
+
+Deadbolt 2 v1.0 was released at roughly the same time as Play 2.0, and was essentially the logic of Deadbolt 1 exposed in the Play 2 style.  Nine months after that initial release - nine months, I should add, of woefully inadequate Scala support - I re-designed the architecture to a more modular approach, and made a few small changes to the API to remove anachronistic elements.  The result is Deadbolt 2 2.0, or Deadbolt 2.0.
+
+There is now a core module written in Java, and separate idiomatic modules for Java and Scala.  This is slightly different to the architecture of Play 2 itself, where the core and the Scala API are co-located.
+
+## Migration notes ##
+As mentioned above, some changes were made to the 2.0 API.  These should be straightforward to implement, as they are all in the form of either name changes, or package changes.
+
+* `RoleHolder` is now `Subject` - as a name, `RoleHolder` made sense when Deadbolt could _only_ with roles.
+* `DeadboltHandler#getRoleHolder` is now `DeadboltHandler#getSubject` - a reasonable consequence of the previous change
+* `Role#getRoleName` is now `Role#getName` - the *Role* in get*Role*Name is superfluous, given the interface it is in
+* Members of the `deadbolt-core` module now have the package name `be.objectify.deadbolt.core`
+* Members of the `deadbolt-java` module now have the package name `be.objectify.deadbolt.java`
+* Members of the `deadbolt-scala` module now have the package name `be.objectify.deadbolt.scala`
 
 ## Acknowledgements ##
 This space for hire!  Review this text, and get your name here :)

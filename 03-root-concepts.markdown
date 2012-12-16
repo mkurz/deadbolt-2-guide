@@ -54,7 +54,7 @@ As `Permission` is an interface, it can be implemented as a class or an enum.
 If you do not require permissions in your application, you do not need to implement this interface - just return an empty list from `Subject#getPermissions`.
 
 ## Hooks ##
-There are two hooks that can be used to integrate D2 into your application - `DeadboltHandler` and `DynamicResourceHandler´.  In D2 Java, these are represented by interfaces; In D2 Scala, they are traits.  There are some small differences between them caused by design differences with the Java and Scala APIs themselves, so exact breakdowns of these types will be covered in the language-specific sections.  For now, it's enough to remind ourselves of where we are working in terms of a HTTP request.
+There are two hooks that can be used to integrate D2 into your application - `DeadboltHandler` and `DynamicResourceHandler`.  In D2 Java, these are represented by interfaces; In D2 Scala, they are traits.  There are some small differences between them caused by design differences with the Java and Scala APIs themselves, so exact breakdowns of these types will be covered in the language-specific sections.  For now, it's enough to remind ourselves of where we are working in terms of a HTTP request.
 
 A HTTP request has a life cycle.  At a high level, it is
 

@@ -37,31 +37,33 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
     public class MyController extends Controller {
 
         public static Result index() {
-            // this method will not be invoked unless there is a subject present.
+            // this method will not be invoked unless there is a subject present
             ...
         }
 
         public static Result search() {
-            // this method will not be invoked unless there is a subject present.
+            // this method will not be invoked unless there is a subject present
             ...
         }
     }
+
 
 2. Deny access to a single method of a controller unless there is a user present.
 
     public class MyController extends Controller {
 
         public static Result index() {
-            // this method is accessible to anyone.
+            // this method is accessible to anyone
             ...
         }
 
         @SubjectPresent
         public static Result search() {
-            // this method will not be invoked unless there is a subject present.
+            // this method will not be invoked unless there is a subject present
             ...
         }
     }
+
 
 #### SubjectNotPresent ####
 `SubjectNotPresent` is the opposite in functionality of `SubjectPresent`.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access only if the result is null.
@@ -92,37 +94,189 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
     public class MyController extends Controller {
 
         public static Result index() {
-            // this method will not be invoked if there is a subject present.
+            // this method will not be invoked if there is a subject present
             ...
         }
 
         public static Result search() {
-            // this method will not be invoked if there is a subject present.
+            // this method will not be invoked if there is a subject present
             ...
         }
     }
+
 
 2. Deny access to a single method of a controller if there is a user present.
 
     public class MyController extends Controller {
 
         public static Result index() {
-            // this method is accessible to anyone.
+            // this method is accessible to anyone
             ...
         }
 
         @SubjectNotPresent
         public static Result search() {
-            // this method will not be invoked unless there is not a subject present.
+            // this method will not be invoked unless there is not a subject present
             ...
         }
     }
 
+
 #### Restrict ####
-todo
+The Restrict constraint requires that a) there is a subject present, and b) the subject has ALL the roles specified in the constraint.  The key thing to remember about ´Restrict´ is that it ANDs together the role names.
+
+##### Notation #####
+The role names specified in the annotation can take two forms.
+
+1. Exact form - the subject must have a role whose name matches the required role exactly.  For example, for a constraint ´@Restrict("foo")` the Subject *must* have a `Role` whose name is "foo".
+2. Negated form - if the required role starts starts with a !, the constraint is negated.  For example, for a constraint ´@Restrict("!foo")` the Subject *must not* have a `Role` whose name is "foo".
+
+##### Scope #####
+`@Restrict` can be used at the class or method level.
+
+##### Parameters #####
+
+|Parameter                |Type                              |Notes                                             |
+|-------------------------|----------------------------------|--------------------------------------------------|
+| value                   | String[]                         | The roles that must (or in the case of negation, | 
+|                         |                                  | must not) be held by the `Subject`.              |
+|-------------------------|----------------------------------|--------------------------------------------------|
+| content                 | String                           | A hint to indicate the content  expected in      | 
+|                         |                                  | in the response.  This value will be passed      |
+|                         |                                  | to `DeadboltHandler#onAccessFailure`.   The      |
+|                         |                                  | value of this parameter is completely arbitrary. |
+|-------------------------|----------------------------------|--------------------------------------------------|
+| handler                 | Class<? extends DeadboltHandler> | The **class** of a DeadboltHandler to use  in    |
+|                         |                                  | in place of the default one.                     |
+|-------------------------|----------------------------------|--------------------------------------------------|
+| deferred                | Boolean                          | If true, the interceptor will not be applied     |
+|                         |                                  | until a DeadboltDeferred annotation is           |
+|                         |                                  | encountered.                                     |
+
+##### Example uses #####
+1. For every action in a controller, require the `Subject` to have *editor* and *viewer* roles.
+
+    @Restrict({"editor", "viewer"})
+    public class MyController extends Controller {
+
+        public static Result index() {
+            // this method will not be invoked unless the subject has editor and viewer roles
+            ...
+        }
+
+        public static Result search() {
+            // this method will not be invoked unless the subject has editor and viewer roles
+            ...
+        }
+    }
+
+2. Have different requires for each action in the controller.  Note the, because only one role is specified, the annotation doesn't require array notation.
+
+    public class MyController extends Controller {
+
+        @Restrict("editor")
+        public static Result edit() {
+            // this method will not be invoked unless the subject has editor role
+            ...
+        }
+
+        @Restrict("view")
+        public static Result view() {
+            // this method will not be invoked unless the subject has viewer role
+            ...
+        }
+    }
+
+3. Ensure the ´Subject` has the *editor* but not the *viewer* role
+
+    @Restrict({"editor", "!viewer"})
+    public class MyController extends Controller {
+
+        public static Result edit() {
+            // this method will not be invoked unless the subject has editor role AND does not have the viewer role
+            ...
+        }
+
+        public static Result view() {
+            // this method will not be invoked unless the subject has editor role AND does not have the viewer role
+            ...
+        }
+    }
+
 
 #### Restrictions ####
-todo
+The Restrictions constraint requires that a) there is a subject present, and b) the subject has ALL the roles specified in one of the _role groups_ of the constraint.  `Restrictions` can be thought of as a way to OR together AND'd constraints, equivalent to `@Restrict(x) OR @Restrict(y) OR @Restrict(z)`.
+
+##### Notation #####
+`Restrictions` uses the `And` annotation to define String[] arrays, in the same way that `Restrict` has a String array as a parameter.  Within an `And`, the syntax is exactly like that of `Restrict#values`, with exact and negated forms.
+
+##### Scope #####
+`@Restrictions` can be used at the class or method level.
+
+##### Parameters #####
+
+|Parameter                |Type                              |Notes                                             |
+|-------------------------|----------------------------------|--------------------------------------------------|
+| value                   | And[]                            | For each `And`, the roles that must (or in the   |
+|                         |                                  | case of negation, must not) be held by the       |
+|                         |                                  | `Subject`.  When the restriction is applied, the | 
+|                         |                                  | `And` instances are OR'd together.               |
+|-------------------------|----------------------------------|--------------------------------------------------|
+| content                 | String                           | A hint to indicate the content  expected in      | 
+|                         |                                  | in the response.  This value will be passed      |
+|                         |                                  | to `DeadboltHandler#onAccessFailure`.   The      |
+|                         |                                  | value of this parameter is completely arbitrary. |
+|-------------------------|----------------------------------|--------------------------------------------------|
+| handler                 | Class<? extends DeadboltHandler> | The **class** of a DeadboltHandler to use  in    |
+|                         |                                  | in place of the default one.                     |
+|-------------------------|----------------------------------|--------------------------------------------------|
+| deferred                | Boolean                          | If true, the interceptor will not be applied     |
+|                         |                                  | until a DeadboltDeferred annotation is           |
+|                         |                                  | encountered.                                     |
+
+##### Example uses #####
+To avoid repetition, each example here is shown at the class level.  They would be equally valid at the method level.
+
+1. Require the `Subject` to have *editor* or *viewer* roles.
+
+    @Restrictions({@And("editor"), @And("viewer")})
+    public class MyController extends Controller {
+
+        public static Result index() {
+            // this method will not be invoked unless the subject has editor or viewer roles
+            ...
+        }
+
+        public static Result search() {
+            // this method will not be invoked unless the subject has editor or viewer roles
+            ...
+        }
+    }
+
+2. Require the `Subject` to have *customer* AND "viewer", OR "support" AND *viewer* roles.
+
+    @Restrictions({@And("customer", "viewer"), @And("support", "viewer")})
+    public class MyController extends Controller {
+
+        public static Result index() {
+            // this method will not be invoked unless the subject has customer and viewer,
+            // or support and viewer roles
+            ...
+        }
+    }
+
+2. Require the `Subject` to have *customer* AND NOT "viewer", OR "support" AND NOT *viewer* roles.
+
+    @Restrictions({@And("customer", "!viewer"), @And("support", "!viewer")})
+    public class MyController extends Controller {
+
+        public static Result index() {
+            // this method will not be invoked unless the subject has customer but not viewer roles,
+            // or support but not viewer roles
+            ...
+        }
+    }
+
 
 #### Unrestricted ####
 todo
