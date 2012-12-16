@@ -12,7 +12,7 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 `SubjectPresent` is one of the simplest constraints offered by D2.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access if the result is not null.
 
 ##### Scope #####
-`\@SubjectPresent` can be used at the class or method level.
+`@SubjectPresent` can be used at the class or method level.
 
 ##### Parameters #####
 
@@ -33,36 +33,36 @@ Static constraints, such as Restrict, are implemented entirely within D2 because
 ##### Example uses #####
 *Deny access to any method of a controller unless there is a user present.*
 
-    \@SubjectPresent
-    public class MyController extends Controller \{
+    @SubjectPresent
+    public class MyController extends Controller {
 
-        public static Result index() \{
+        public static Result index() {
             // this method will not be invoked unless there is a subject present
             ...
-        \}
+        }
 
-        public static Result search() \{
+        public static Result search() {
             // this method will not be invoked unless there is a subject present
             ...
-        \}
-    \}
+        }
+    }
 
 
 *Deny access to a single method of a controller unless there is a user present.*
 
-    public class MyController extends Controller \{
+    public class MyController extends Controller {
 
-        public static Result index() \{
+        public static Result index() {
             // this method is accessible to anyone
             ...
-        \}
+        }
 
-        \@SubjectPresent
-        public static Result search() \{
+        @SubjectPresent
+        public static Result search() {
             // this method will not be invoked unless there is a subject present
             ...
-        \}
-    \}
+        }
+    }
 
 
 #### SubjectNotPresent ####
