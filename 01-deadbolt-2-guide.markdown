@@ -11,5 +11,8 @@ In 2012, Steve co-founded the Belgian Play! Framework User Group with Ben Verbek
 
 Steve blogs at <http://www.objectify.be> (which is also where this text was taken from, in respect of the DRY principle), and tweets at <https://twitter.com/steve_objectify>.
 
+## About the book ##
+This book was written in Markdown, and its source files are available on GitHub at <https://github.com/schaloner/deadbolt-2-guide>. 
+
 ## Copyright ##
-This work is &copy; Steve Chaloner 2012 
+This work is &copy; Steve Chaloner 2013
