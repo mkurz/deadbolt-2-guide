@@ -15,4 +15,4 @@ Steve blogs at <http://www.objectify.be> (which is also where this text was take
 This book was written in Markdown, and its source files are available on GitHub at <https://github.com/schaloner/deadbolt-2-guide>. 
 
 ## Copyright ##
-This work is &copy; Steve Chaloner 2012 
+This work is &copy; Steve Chaloner 2013
