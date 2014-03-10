@@ -49,6 +49,6 @@ To activate the plugin, you need to update your `conf/play.plugins` file.  If th
 
 The `10000` defines the loading priority of the plugin -lower numbers are loaded first.  If you have no other plugins, this is irrelevant.  If you do have other plugins, you'll need to work out the best way to order them.  D2 should, in theory and so far in practice, play nicely with other modules so its loading priority (again, in theory) should not matter.  File this under "Things I should be aware of".
 
-When the plugin starts, it will attempt to read the class name specified by `deadbolt.java.handler` in application.conf.  If found, an class of the class will then be instantiated.  If the instantiation fails, an exception will be thrown so you receive a fail-fast response on start-up.
+When the plugin starts, it will attempt to read the class name specified by `deadbolt.java.handler` in application.conf.  If found, an instance of the class will then be instantiated.  If the instantiation fails, an exception will be thrown so you receive a fail-fast response on start-up.
 
 As mentioned above, it is a valid scenario to have no default handler specified.  If `deadbolt.java.handler` doesn't appear in your configuration, a warning will be logged to alert you of this.
