@@ -59,7 +59,7 @@ Both modules will pull in the `deadbolt-core` transitive dependency.
 ## Migration notes ##
 As mentioned above, some changes were made to the 2.0 API.  These should be straightforward to implement, as they are all in the form of either name changes, or package changes.
 
-* `RoleHolder` is now `Subject` - as a name, `RoleHolder` made sense when Deadbolt could _only_ with roles.
+* `RoleHolder` is now `Subject` - as a name, `RoleHolder` made sense when Deadbolt could _only_ deal with roles.
 * `DeadboltHandler#getRoleHolder` is now `DeadboltHandler#getSubject` - a reasonable consequence of the previous change
 * `Role#getRoleName` is now `Role#getName` - the *Role* in get*Role*Name is superfluous, given the interface it is in
 * Members of the `deadbolt-core` module now have the package name `be.objectify.deadbolt.core`
