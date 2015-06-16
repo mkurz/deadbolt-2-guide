@@ -27,8 +27,9 @@ Dynamic constraints, which are `Dynamic` and `Pattern.CUSTOM` constraints, are d
 Unlike earlier versions of Deadbolt, in which handlers were declared in `application.conf` and created reflectively, Deadbolt now uses dependency injection to achieve the same functionality in a type-safe and more flexible manner.  Various components of Deadbolt, which will be explored in later chapters, require an instance of `be.objectify.deadbolt.java.cache.HandlerCache` - however, no such implementations are provided.  
 
 Instead, you need to implement your own version.  This has two requirements:
-1. You have a get() method which returns the application-wide default handler
-2. You have an apply(String handlerKey) method which returns a named handler
+
+* You have a get() method which returns the application-wide default handler
+* You have an apply(String handlerKey) method which returns a named handler
 
 Here's one possible implementation, using hard-coded handlers.
 
@@ -97,8 +98,9 @@ Both `be.objectify.deadbolt.javaDeadboltModule` and your custom bindings module 
 Deadbolt Java-specific configuration lives in the `deadbolt.java` namespace.
 
 There are 2 settings:
-1. The millisecond timeout applied to blocking calls when rendering templates.  Defaults to 1000ms.
-2. A flag to indicate if the subject should be cached on a per-request basis.  Defaults to false.
+
+* The millisecond timeout applied to blocking calls when rendering templates.  Defaults to 1000ms.
+* A flag to indicate if the subject should be cached on a per-request basis.  Defaults to false.
 
 Personally, I prefer the HOCON (Human-Optimized Config Object Notation) syntax supported by Play, so I would recommend the following:
 
