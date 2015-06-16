@@ -4,7 +4,7 @@ At the date of writing this, the small code experiment that turned into Deadbolt
 I hope this document (booklet-like or otherwise) will prove useful as you integrate Deadbolt 2 into your application.
 
 ## History
-Back in September 2010, I was embarking on my first project using the Play! Framework (version 1.03.2 for fans of unnecessary detail) and discovering the Secure module it shipped with was unsuitable for the required authorisation.  As a result, Deadbolt 1.0 was written to provide AND/OR/NOT support for roles.  Sometime later, dynamic rule support was added and other new features would be released as use cases and bug reports cropped up.
+Back in September 2010, I was embarking on my first project using the Play! Framework (for fans of unnecessary detail, it was version 1.03.2, back when it still had an exclamation mark) and discovering the Secure module it shipped with was unsuitable for the required authorisation.  As a result, Deadbolt 1.0 was written to provide AND/OR/NOT support for roles.  Sometime later, dynamic rule support was added and other new features would be released as use cases and bug reports cropped up.
 
 The user guide for Deadbolt 1 - which I can still highly recommend if you need authorisation support in your Play 1 apps - starts with this:
 
