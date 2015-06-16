@@ -5,7 +5,7 @@ Deadbolt is centered around a single idea - constraining access to a resource to
 Two mechanisms are provided to declare these constraints - one at the template level and another at the controller level.  In each case, there are differences between how these are applied in Java and Scala applications, so specific details will be provided in later chapters.  The capabilities of each version are roughly similar, taking into account the idiosyncrasies of each language.
 
 ## Template-level constraints
-For a Play 2 application that uses server-side rendering, Deadbolt provides several template tags that will conceal or reveal DOM elements based on your specifications.
+For a Play application that uses server-side rendering, Deadbolt provides several template tags that will conceal or reveal DOM elements based on your specifications.
 
 A couple of basic use cases are
 * Only displayed a "Log in" link if there is no user present

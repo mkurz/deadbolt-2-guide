@@ -1,6 +1,6 @@
 # Using Deadbolt 2 with Play 2 Scala projects
 
-Deadbolt 2 for Scala provides an idiomatic API for dealing with Scala controllers and templates rendered from Scala controllers in Play 2 applications.
+Deadbolt for Scala provides an idiomatic API for dealing with Scala controllers and templates rendered from Scala controllers in Play applications.
 
 ## The Deadbolt Handler
 For any module - or framework - to be useable, it must provide a mechanism by which it can be hooked into your application.  For Deadbolt, the central hook is the `be.objectify.deadbolt.scala.DeadboltHandler` trait.  The four functions defined by this trait are crucial to Deadbolt - for example, `DeadboltHandler#getSubject` gets the current user (or subject, to use the correct security terminology), whereas `DeadboltHandler#onAccessFailure` is used to generate a response when authorisation fails.
