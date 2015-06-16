@@ -84,7 +84,7 @@ There is one setting, which is millisecond timeout applied to blocking calls whe
 Personally, I prefer the HOCON (Human-Optimized Config Object Notation) syntax supported by Play, so I would recommend the following:
 
     deadbolt {
-        java {
+        scala {
             view-timeout=500
         }
     }
