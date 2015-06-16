@@ -1,9 +1,9 @@
-# Introduction #
+# Introduction
 At the date of writing this, the small code experiment that turned into Deadbolt is nearly five years old.  In that time, it has grown in capabilities, power and - hopefully - usefulness.  It has certainly reached the point where a few badly-written lines of text can adequately cover its features and use.  Once I factored in that it now has support for Java and Scala, and that its new architecture allows for easy extension with other languages, it became clear that a short booklet (or booklet-like document) was required.
 
 I hope this document (booklet-like or otherwise) will prove useful as you integrate Deadbolt 2 into your application.
 
-## History ##
+## History
 Back in September 2010, I was embarking on my first project using the Play! Framework (version 1.03.2 for fans of unnecessary detail) and discovering the Secure module it shipped with was unsuitable for the required authorisation.  As a result, Deadbolt 1.0 was written to provide AND/OR/NOT support for roles.  Sometime later, dynamic rule support was added and other new features would be released as use cases and bug reports cropped up.
 
 The user guide for Deadbolt 1 - which I can still highly recommend if you need authorisation support in your Play 1 apps - starts with this:
@@ -27,5 +27,5 @@ Deadbolt 2 v1.0 was released at roughly the same time as Play 2.0, and was essen
 
 There is now a core module written in Java, and separate idiomatic modules for Java and Scala.  This is slightly different to the architecture of Play 2 itself, where the core and the Scala API are co-located.
 
-## Java versus Scala ##
+## Java versus Scala
 I have tried my best, within the constraints of both languages and my knowledge of them, to give equal capabilities to each version of Deadbolt 2.  Scala is generally detailed after Java in this book for two reasons.  The first reason is the alphabet.  The second is that by writing the Scala section last, I have a chance to increase my knowledge of a language that is frequently beautiful and occasionally a little bit like an ice-cream headache.

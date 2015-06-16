@@ -1,6 +1,6 @@
-# Deadbolt 2 #
+# Deadbolt 2
 
-## About the author ##
+## About the author
 Steve Chaloner has been a software developer, consultant and mentor since 1999.   He specialises in Java and Scala, but believes in using the right tool for the job. The right tool for him, for web-based applications, is the Play framework.
 
 He is the author of several open-source projects, the most successful of which is Deadbolt, an authorization system for Play.
@@ -11,11 +11,11 @@ In 2012, Steve co-founded the Belgian Play! Framework User Group with Ben Verbek
 
 Steve blogs at <http://www.objectify.be> and tweets at <https://twitter.com/steve_objectify>.
 
-## About the book ##
+## About the book
 This book was written in Markdown, and its source files are available on GitHub at <https://github.com/schaloner/deadbolt-2-guide>. 
 
-## Dedication ##
+## Dedication
 It's all for Greet &amp; Lotte. 
 
-## Copyright ##
+## Copyright
 This work is &copy; Steve Chaloner 2015
