@@ -127,8 +127,7 @@ It has been stated on the Play! Framework group (<https://groups.google.com/d/ms
 To the best of my knowledge, there are two ways in which to use dynamic resource handlers in Deadbolt:
 
 1. Use a single `DynamicResourceHandler` that deals with all dynamic security
-2. Use multiple `DynamicResourceHandlers` and use specific ones in specific places
-3. Use a single `DynamicResourceHandler` as a façade
+2. Use a single `DynamicResourceHandler` as a façade
 
 ### 1. Use a single, potentially huge DRH
 A friend of mine, sitting in a second-year university course discussion on object-oriented design, witnessed a student put up his hand and say, "I don't get it.  Why don't we just put everything in one big class?".  If you would ask a similar question, this is the approach for you.  For the rest of us, I think we can all appreciate that any DRH dealing with more than a couple of separate dynamic restrictions would get very large, very quickly.
