@@ -262,7 +262,57 @@ The role names specified in the annotation can take two forms.
  {pagebreak}
 
 #### Unrestricted
-todo
+`Unrestricted` allows you to over-ride more general constraints, i.e. if a controller is annotated with `@SubjectPresent` but you want an action in there to be accessible to everyone.
+
+    @SubjectPresent
+    public class MyController extends Controller
+    {
+        public F.Promise<Result> foo()
+        {
+            // a subject must be present for this to be accessible
+        }
+        
+        @Unrestricted
+        public F.Promise<Result> bar()
+        {
+            // anyone can access this action
+        }
+    }
+
+You can also flip this on its head, and use it to show that a controller is explicitly unrestricted - used in this way, it's a marker of intent rather than something functional.  Because method-level constraints are evaluated first, you can have still protected actions within an `@Unrestricted` controller.
+
+    @Unrestricted
+    public class MyController extends Controller
+    {
+        @SubjectPresent
+        public F.Promise<Result> foo()
+        {
+            // a subject must be present for this to be accessible
+        }
+        
+        public F.Promise<Result> bar()
+        {
+            // anyone can access this action
+        }
+    }
+
+##### Scope
+`@Unrestricted` can be used at the class or method level.
+
+##### Parameters
+
+|Parameter                |Type                              |Default                |Notes                                             |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| content                 | String                           | ""                    | A hint to indicate the content  expected in      |
+|                         |                                  |                       | in the response.  This value will be passed      |
+|                         |                                  |                       | to `DeadboltHandler#onAccessFailure`.   The      |
+|                         |                                  |                       | value of this parameter is completely arbitrary. |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| handlerKey              | String                           | "defaultHandler"      | The name of a handler in the `HandlerCache`      |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| deferred                | boolean                          | false                 | If true, the interceptor will not be applied     |
+|                         |                                  |                       | until a `DeadboltDeferred` annotation is         |
+|                         |                                  |                       | encountered.                                     |
 
  {pagebreak} 
 
