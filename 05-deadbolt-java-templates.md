@@ -31,6 +31,33 @@ Each constraint has an `xOr` variant, which allows you to render content in plac
 
 In each case, the fallback content is defined as a second `Content` block following the primary body.
 
+### Timeouts
+Because templates use blocking calls when rendering, the promises returned from the Deadbolt handler, etc, need to be completed during the rendering process.  A timeout, with a default value of 1000ms, is used to wait for the completion but you may want to change this.  You can do this in two ways.
+
+##### Set a global timeout
+If you want to change the default timeout, define `deadbolt.java.view-timeout` in your configuration and give it a milisecond value, e.g.
+
+    deadbolt {
+      java {
+        view-timeout=1500
+      }
+    }
+
+##### Use a supplier to provide a timeout
+All Deadbolt templates have a `timeout` parameter which defaults to the app-wide value - 1000 if nothing else if defined, otherwise whatever `deadbolt.java.view-timeout` is set to.  But - and here's the nice part - the `timeout` parameter is not a `Long` but rather a `Supplier<Long>`.  This means you can use a timeout that fluctuates based on some metric - say, the number of timeouts that occur during template rendering.
+
+**How do I know if timeouts are occurring?**
+
+That's a good question.  And the answer is - you need to implement `be.objectify.deadbolt.java.TemplateFailureListener` and bind it using a module; see "Expose your DeadboltHandlers with a HandlerCache" chapter 4 for more details on this.  If you re-use that chapter 4 module, the binding will look something like this.
+
+    public Seq<Binding<?>> bindings(final Environment environment,
+                                    final Configuration configuration) {
+        return seq(bind(HandlerCache.class).to(MyHandlerCache.class).in(Singleton.class),
+                   bind(TemplateFailureListener.class).to(MyTemplateFailureListener.class).in(Singleton.class));
+    }
+
+Making it a singleton allows you to keep a running count of the failure level;  if you're using it for other purposes, then scope it accordingly.
+
 ## SubjectPresent
 Sometimes, you don't need fine-grained checked - you just need to see if there **is a** user present
 
