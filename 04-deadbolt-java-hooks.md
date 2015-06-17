@@ -99,9 +99,9 @@ Deadbolt Java-specific configuration lives in the `deadbolt.java` namespace.
 
 There are two settings:
 
-* deadbolt.java.view-timeout
+* `deadbolt.java.view-timeout`
   * The millisecond timeout applied to blocking calls when rendering templates.  Defaults to 1000ms.
-* deadbolt.java.cache-user
+* `deadbolt.java.cache-user`
   * A flag to indicate if the subject should be cached on a per-request basis.  Defaults to false.
 
 Personally, I prefer the HOCON (Human-Optimized Config Object Notation) syntax supported by Play, so I would recommend the following:
