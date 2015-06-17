@@ -34,7 +34,7 @@ In each case, the fallback content is defined as a second `Content` block follow
 ## SubjectPresent
 Sometimes, you don't need fine-grained checked - you just need to see if there **is a** user present
 
-### Example 1
+##### Example 1
 The default Deadbolt handler is used to obtain the subject.
 
     @subjectPresent() {
@@ -47,7 +47,7 @@ The default Deadbolt handler is used to obtain the subject.
     	fallback content
     }
 
-### Example 2
+##### Example 2
 A specific Deadbolt handler is used to obtain the subject.
 
     @(handler: DeadboltHandler)
@@ -64,7 +64,7 @@ A specific Deadbolt handler is used to obtain the subject.
 ## SubjectNotPresent
 Sometimes, you don't need fine-grained checked - you just need to see if there **is no** user present
 
-### Example 1
+##### Example 1
 The default Deadbolt handler is used to obtain the subject.
 
     @subjectNotPresent() {
@@ -77,7 +77,7 @@ The default Deadbolt handler is used to obtain the subject.
     	fallback content
     }
 
-### Example 2
+##### Example 2
 A specific Deadbolt handler is used to obtain the subject.
 
     @(handler: DeadboltHandler)
@@ -98,28 +98,28 @@ Use `Subject`s `Role`s to perform AND/OR/NOT checks.  The values given to the bu
 
     @import be.objectify.deadbolt.core.utils.TemplateUtils.{la, as}
 
-### Example 1
+##### Example 1
 The subject is obtained from the default handler, and must have the foo role.
 
     @restrict(roles = la(as("foo"))) {
         Subject requires the foo role for this to be visible
     }
 
-### Example 2
+##### Example 2
 The subject is obtained from the default handler, and must have the foo AND bar role.
 
     @restrict(roles = la(as("foo", "bar")) {
          Subject requires the foo AND bar roles for this to be visible
     }
 
-### Example 3
+##### Example 3
 The subject is obtained from the default handler, and must have the foo OR bar role.
 
     @restrict(roles = la(as("foo"), as("bar"))) {
          Subject requires the foo OR bar role for this to be visible
     }
 
-### Example 4
+##### Example 4
 The subject is obtained from the default handler, and must have the foo AND bar role; otherwise, fallback content will be rendered.
 
     @restrictOr(roles = la(as("foo", "bar"))) {
@@ -128,7 +128,7 @@ The subject is obtained from the default handler, and must have the foo AND bar 
     	Subject does not have the necessary roles
     }
 
-### Example 5
+##### Example 5
 The subject is obtained from a specific handler, and must have the foo OR bar role.
 
     @(handler: DeadboltHandler)
@@ -142,28 +142,28 @@ Use the `Subject`s `Permission`s to perform a variety of checks.
 
 The default pattern type is `PatternType.EQUALITY`.
 
-### Example 1
+##### Example 1
 The subject and `DynamicResourceHandler` are obtained from the default handler, and must have a permission with the exact value "admin.printer".
 
     @pattern(value = "admin.printer") {
         Subject must have a permission with the exact value "admin.printer" for this to be visible
     }
 
-### Example 2
+##### Example 2
 The subject and `DynamicResourceHandler` are obtained from the default handler, and must have a permission that matches the specified regular expression.
 
     @pattern(value = "(.)*\.printer", patternType = PatternType.REGEX) {
     	Subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" for this to be visible
     }
 
-### Example 3
+##### Example 3
 The `DynamicResourceHandler` is obtained from the default handler and used to apply the custom test
 
     @pattern(value = "something arbitrary", patternType = PatternType.CUSTOM) {
     	DynamicResourceHandler#checkPermission must result in true for this to be visible
     }
 
-### Example 4
+##### Example 4
 The subject and `DynamicResourceHandler` are obtained from a specific handler, and must have a permission that matches the specified regular expression.
 
     @(handler: DeadboltHandler)
@@ -174,21 +174,21 @@ The subject and `DynamicResourceHandler` are obtained from a specific handler, a
 ## Dynamic
 The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
 
-### Example 1
+##### Example 1
 The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content.
 
     @dynamic(name = "someName") {
         DynamicResourceHandler#isAllowed must result in true for this to be visible
     }
 
-### Example 2
+##### Example 2
 The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content with some hard-coded meta data.
 
     @dynamic(name = "someName", meta = "foo") {
         DynamicResourceHandler#isAllowed must result in true for this to be visible
     }
 
-### Example 3
+##### Example 3
 The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content with some dynamically-defined meta data.
 
     @(someMetaValue: String)
@@ -196,7 +196,7 @@ The `DynamicResourceHandler` is obtained from the default handler and is used to
         DynamicResourceHandler#isAllowed must result in true for this to be visible
     }
 
-### Example 4
+##### Example 4
 The `DynamicResourceHandler` is obtained from a specific handler and is used to apply a named constraint.
 
     @(handler: DeadboltHandler)
