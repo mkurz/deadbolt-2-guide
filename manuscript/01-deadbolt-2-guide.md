@@ -15,11 +15,7 @@ In 2012, Steve co-founded the Belgian Play Framework User Group with Ben Verbeke
 
 Steve blogs at <http://www.objectify.be> and tweets at <https://twitter.com/steve_objectify>.
 
+
 ## About the book
 This book was written in Markdown, and its source files are available on GitHub at <https://github.com/schaloner/deadbolt-2-guide>. 
 
-## Dedication
-It's all for Greet &amp; Lotte. 
-
-## Copyright
-This work is &copy; Steve Chaloner 2015
