@@ -6,12 +6,13 @@ One very important point to bear in mind is the order in which Play evaluates an
 As with the previous chapter, here is a a breakdown of all the Java annotation-driven interceptors available in Deadbolt Java, with parameters, usages and tips and tricks.
 
 ## Static constraints
-Static constraints, such as `Restrict`, are implemented entirely within Deadbolt because it can finds all the information needed to determine authorisation automatically.  For example, if a constraint requires two roles, "foo" and "bar" to be present, the logic behind the `Restrict` constraint knows it just needs to check the roles of the current subject.
+Static constraints, such as `Restrict`, are implemented entirely within Deadbolt because it can finds all the information needed to determine authorization automatically.  For example, if a constraint requires two roles, "foo" and "bar" to be present, the logic behind the `Restrict` constraint knows it just needs to check the roles of the current subject.
 
 #### SubjectPresent
 `SubjectPresent` is one of the simplest constraints offered by Deadbolt.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access if the result is an `Optional` containing a value.
 
 ##### Scope
+
 `@SubjectPresent` can be used at the class or method level.
 
 ##### Parameters
@@ -72,6 +73,7 @@ Static constraints, such as `Restrict`, are implemented entirely within Deadbolt
 `SubjectNotPresent` is the opposite in functionality of `SubjectPresent`.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access only if the result is an empty `Optional`.
 
 ##### Scope
+
 `@SubjectNotPresent` can be used at the class or method level.
 
 ##### Parameters
@@ -138,6 +140,7 @@ The role names specified in the annotation can take two forms.
 2. Negated form - if the required role starts starts with a !, the constraint is negated.  For example, for a constraint `@Restrict("!foo")` the Subject *must not* have a `Role` whose name is "foo".
 
 ##### Scope
+
 `@Restrict` can be used at the class or method level.
 
 ##### Parameters
@@ -332,6 +335,7 @@ Specifying a controller-level restriction as `deferred` will work, if the annota
                                                      .orElseGet(() -> delegate.call(ctx))
 
 ##### Scope
+
 `@BeforeAccess` can be used at the class or method level.
 
 ##### Parameters
