@@ -1,2 +1,2 @@
-# Deadbolt Scala Templates
+# Deadbolt Scala Controllers
 todo
