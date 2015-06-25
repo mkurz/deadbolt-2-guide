@@ -1,4 +1,5 @@
 # Deadbolt Java Templates
+
 Before you get your hopes up that Play templates can be written in Java, I'm talking about Scala templates rendered from Java controllers.
 
 
@@ -20,9 +21,11 @@ This is not a client-side DOM manipulation, but rather the exclusion of content 
 One important thing to note here is that templates are blocking, so any Futures used need to be completed for the resuly to be used in the template constraints.  As a result, each constraint can take a function that expresses a Long, which is the millisecond value of the timeout.  It defaults to 1000 milliseconds, but you can change this globally by setting the `deadbolt.java.view-timeout` value in your `application.conf`.
 
 ### Handlers
+
 By default, template constraints use the default Deadbolt handler, as obtained via `<YourDeadboltHandlerImpl>#get()` but as with controller constraints you can pass in a specific handler.  The cleanest way to do this is to pass the handler into the template and then pass it into the constraints.
 
 ### Fallback content
+
 Each constraint has an `xOr` variant, which allows you to render content in place of the unauthorized content.  This takes the form `<constraint>Or`, for example `subjectPresentOr`
 
 
@@ -39,13 +42,13 @@ Each constraint has an `xOr` variant, which allows you to render content in plac
 
 In each case, the fallback content is defined as a second `Content` block following the primary body.
 
-{pagebreak}
-
 ### Timeouts
+
 Because templates use blocking calls when rendering, the promises returned from the Deadbolt handler, etc, need to be completed during the rendering process.  A timeout, with a default value of 1000ms, is used to wait for the completion but you may want to change this.  You can do this in two ways.
 
 ##### Set a global timeout
-If you want to change the default timeout, define `deadbolt.java.view-timeout` in your configuration and give it a milisecond value, e.g.
+
+If you want to change the default timeout, define `deadbolt.java.view-timeout` in your configuration and give it a millisecond value, e.g.
 
     deadbolt {
       java {
@@ -54,11 +57,12 @@ If you want to change the default timeout, define `deadbolt.java.view-timeout` i
     }
 
 ##### Use a supplier to provide a timeout
-All Deadbolt templates have a `timeout` parameter which defaults to the app-wide value - 1000 if nothing else if defined, otherwise whatever `deadbolt.java.view-timeout` is set to.  But - and here's the nice part - the `timeout` parameter is not a `Long` but rather a `Supplier<Long>`.  This means you can use a timeout that fluctuates based on some metric - say, the number of timeouts that occur during template rendering.
+
+All Deadbolt templates have a `timeout` parameter which defaults to returning the app-wide value - 1000L if nothing else if defined, otherwise whatever `deadbolt.java.view-timeout` is set to.  But - and here's the nice part - the `timeout` parameter is not a `Long` but rather a `Supplier<Long>`.  This means you can use a timeout that fluctuates based on some metric - say, the number of timeouts that occur during template rendering.
 
 **How do I know if timeouts are occurring?**
 
-That's a good question.  And the answer is - you need to implement `be.objectify.deadbolt.java.TemplateFailureListener` and bind it using a module; see "Expose your DeadboltHandlers with a HandlerCache" chapter 4 for more details on this.  If you re-use that chapter 4 module, the binding will look something like this.
+That's a good question.  And the answer is - you need to implement `be.objectify.deadbolt.java.TemplateFailureListener` and bind it using a module; see "Expose your DeadboltHandlers with a HandlerCache" section in chapter 4 for more details on this.  If you re-use that chapter 4 module, the binding will look something like this.
 
     public Seq<Binding<?>> bindings(final Environment environment,
                                     final Configuration configuration) {
@@ -68,8 +72,22 @@ That's a good question.  And the answer is - you need to implement `be.objectify
 
 Making it a singleton allows you to keep a running count of the failure level;  if you're using it for other purposes, then scope it accordingly.
 
+{pagebreak}
+
 ## SubjectPresent
+
 Sometimes, you don't need fine-grained checked - you just need to see if there **is a** user present
+
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.get()            | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () -> Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.java.view-timeout`  |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
+
 
 **Example 1**
 
@@ -106,7 +124,18 @@ A specific Deadbolt handler is used to obtain the subject.
 {pagebreak}
 
 ## SubjectNotPresent
+
 Sometimes, you don't need fine-grained checked - you just need to see if there **is no** user present
+
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.get()            | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () -> Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.java.view-timeout`  |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
 
 
 **Example 1**
@@ -149,6 +178,23 @@ Use `Subject`s `Role`s to perform AND/OR/NOT checks.  The values given to the bu
 
 
     @import be.objectify.deadbolt.core.utils.TemplateUtils.{la, as}
+
+
+AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
+
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.get()            | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| roles                   | List[Array[String]]    |                               | The AND/OR/NOT restrictions. One array defines   |
+|                         |                        |                               | an AND, multiple arrays define OR.   See notes   |
+|                         |                        |                               | on `la` and `as` above.                          |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () -> Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.java.view-timeout`  |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
 
 
 **Example 1**
@@ -204,11 +250,25 @@ The subject is obtained from a specific handler, and must have the foo OR bar ro
 
 {pagebreak}
 
-**Pattern**
+## Pattern
+
 Use the `Subject`s `Permission`s to perform a variety of checks.
 
 
-The default pattern type is `PatternType.EQUALITY`.
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.get()            | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| value                   | String                 |                               | The value of the pattern, e.g. a regex or a      |
+|                         |                        |                               | precise match.                                   |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| patternType             | PatternType            | PatternType.EQUALITY          |                                                  |
+|                         |                        |                               |                                                  |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () -> Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.java.view-timeout`  |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
 
 
 **Example 1**
@@ -251,10 +311,27 @@ The subject and `DynamicResourceHandler` are obtained from a specific handler, a
     	Subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" for this to be visible
     }
 
+{pagebreak}
 
 ## Dynamic
 
 The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
+
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.get()            | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| name                    | String                 |                               | The name of the constraint, passed into the      |
+|                         |                        |                               | `DynamicResourceHandler`.                        |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| meta                    | PatternType            | null                          |                                                  |
+|                         |                        |                               |                                                  |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () -> Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.java.view-timeout`  |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
 
 
 **Example 1**

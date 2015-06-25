@@ -39,6 +39,38 @@ Each constraint has an `xOr` variant, which allows you to render content in plac
 
 In each case, the fallback content is defined as a second `Content` block following the primary body.
 
+
+### Timeouts
+
+Because templates use blocking calls when rendering, the futures returned from the Deadbolt handler, etc, need to be completed during the rendering process.  A timeout, with a default value of 1000ms, is used to wait for the completion but you may want to change this.  You can do this in two ways.
+
+##### Set a global timeout
+
+If you want to change the default timeout, define `deadbolt.scala.view-timeout` in your configuration and give it a millisecond value, e.g.
+
+    deadbolt {
+      scala {
+        view-timeout=1500
+      }
+    }
+
+##### Use a supplier to provide a timeout
+
+All Deadbolt templates have a `timeout` parameter which defaults to expressing the app-wide value - 1000L if nothing else if defined, otherwise whatever `deadbolt.java.view-timeout` is set to.  But - and here's the nice part - the `timeout` parameter is not a `Long` but rather a `Function0<Long>`.  This means you can use a timeout that fluctuates based on some metric - say, the number of timeouts that occur during template rendering.
+
+**How do I know if timeouts are occurring?**
+
+That's a good question.  And the answer is - you need to implement `be.objectify.deadbolt.scala.TemplateFailureListener` and bind it using a module; see "Expose your DeadboltHandlers with a HandlerCache" section in chapter 8 for more details on this.  If you re-use that chapter 8 module, the binding will look something like this.
+
+    class CustomDeadboltHook extends Module {
+        override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = Seq(
+            bind[HandlerCache].to[MyHandlerCache],
+            bind[TemplateFailureListener].to[MyTemplateFailureListener]
+        )
+    }
+
+Making it a singleton allows you to keep a running count of the failure level;  if you're using it for other purposes, then scope it accordingly.
+
 {pagebreak}
 
 ## SubjectPresent
@@ -46,9 +78,16 @@ In each case, the fallback content is defined as a second `Content` block follow
 
 Sometimes, you don't need fine-grained checked - you just need to see if there **is a** user present.
 
-**Parameters**
 
-To do - detail the parameters of the constraint.
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.apply()          | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () => Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.scala.view-timeout` |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
+
 
 **Example 1**
 
@@ -86,9 +125,16 @@ A specific Deadbolt handler is used to obtain the subject.
 
 Sometimes, you don't need fine-grained checked - you just need to see if there **is no** user present.
 
-**Parameters**
 
-To do - detail the parameters of the constraint.
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.apply()          | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () => Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.scala.view-timeout` |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
+
 
 **Example 1**
 
@@ -129,9 +175,19 @@ Use `Subject`s `Role`s to perform AND/OR/NOT checks.  The values given to the co
 
 AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
 
-**Parameters**
 
-To do - detail the parameters of the constraint.
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.apply()          | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| roles                   | List[Array[String]]    |                               | The AND/OR/NOT restrictions. One array defines   |
+|                         |                        |                               | an AND, multiple arrays define OR.               |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () => Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.scala.view-timeout` |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
+
 
 **Example 1**
 
@@ -175,11 +231,22 @@ The subject must have the "foo" OR "bar" roles, or fallback content will be disp
 
 Use the `Subject`s `Permission`s to perform a variety of checks.
 
-The default pattern type is `PatternType.EQUALITY`.
 
-**Parameters**
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.apply()          | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| value                   | String                 |                               | The value of the pattern, e.g. a regex or a      |
+|                         |                        |                               | precise match.                                   |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| patternType             | PatternType            | PatternType.EQUALITY          |                                                  |
+|                         |                        |                               |                                                  |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () => Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.scala.view-timeout` |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
 
-To do - detail the parameters of the constraint.
 
 **Example 1**
 
@@ -215,14 +282,29 @@ Fallback content is displayed if the user does not have a permission exactly mat
     	Subject did not have necessary permissions
     }
 
+{pagebreak}
+
 ## Dynamic
 
 
 The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
 
-**Parameters**
 
-To do - detail the parameters of the constraint.
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | handlerCache.apply()          | The handler to use to apply the constraint.      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| name                    | String                 |                               | The name of the constraint, passed into the      |
+|                         |                        |                               | `DynamicResourceHandler`.                        |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| meta                    | PatternType            | null                          |                                                  |
+|                         |                        |                               |                                                  |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| timeout                 | () => Long             | A function returning          | The timeout applied to blocking calls.           |
+|                         |                        | `deadbolt.scala.view-timeout` |                                                  |
+|                         |                        | if it's defined, otherwise    |                                                  |
+|                         |                        | 1000L                         |                                                  |
+
 
 **Example 1**
 
