@@ -129,3 +129,23 @@ Personally, I prefer the HOCON (Human-Optimized Config Object Notation) syntax s
         view-timeout=500
       }
     }
+
+### JPA
+After all the effort I made to ensure Deadbolt is as non-blocking as possible, JPA emerged from the mist to bite me on the ass; entity managers, it seems, do not like the kind of multi-threaded usage implicit in Play's asynchronous behaviour.
+
+Luckily, a solution is at hand.  Less luckily, it's blocking.
+
+To address this, you can put Deadbolt into blocking mode - this ensures all DB calls made in the Deadbolt layer are made from the same thread; this has performance implications, but it's unavoidable with JPA.
+
+To switch to blocking mode, set `deadbolt.java.blocking` to true in your configuration.
+
+The default timeout is 1000 milliseconds - to change this, use `deadbolt.java.blocking-timeout` in your configuration.
+
+This example configuration puts Deadbolt in blocking mode, with a timeout of 2500 milliseconds:
+
+    deadbolt {
+        java {
+            blocking=true
+            blocking-timeout=2500
+        }
+    }
