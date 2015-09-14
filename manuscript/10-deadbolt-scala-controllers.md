@@ -52,7 +52,9 @@ Pattern uses a `Subject`'s `Permission`s to perform a variety of checks.
                                                           patternType = PatternType.REGEX)
                                           .defaultHandler() { Ok(accessOk()) }
     
-    // the checkPermssion function of the current handler's DynamicResourceHandler will be used.  This is a user-defined test     def permittedFunctionC = actionBuilders.PatternAction(value = "something arbitrary", 
+    // the checkPermssion function of the current handler's DynamicResourceHandler will be 
+    // used.  This is a user-defined test
+    def permittedFunctionC = actionBuilders.PatternAction(value = "something arbitrary", 
                                                           patternType = PatternType.CUSTOM)
                                            .defaultHandler() { Ok(accessOk()) }
 
@@ -64,6 +66,7 @@ The most flexible constraint - this is a completely user-defined constraint that
     def foo = actionBuilder.DynamicAction(name = "someClassifier")
                            .defaultHandler() { Ok(accessOk()) }
 
+{pagebreak}
 
 ## Controller constraints with action composition
 
@@ -120,7 +123,7 @@ AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `Li
       }
     }
 
-## Pattern
+### Pattern
 
 Pattern uses a `Subject`'s `Permission`s to perform a variety of checks.
 
