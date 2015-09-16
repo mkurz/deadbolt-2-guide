@@ -5,7 +5,7 @@ One very important point to bear in mind is the order in which Play evaluates an
 
 As with the previous chapter, here is a a breakdown of all the Java annotation-driven interceptors available in Deadbolt Java, with parameters, usages and tips and tricks.
 
-#### Static constraints
+**Static constraints**
 Static constraints, are implemented entirely within Deadbolt because it can finds all the information needed to determine authorization automatically.  For example, if a constraint requires two roles, "foo" and "bar" to be present, the logic behind the `Restrict` constraint knows it just needs to check the roles of the current subject.
 
 The static constraints available are
@@ -15,7 +15,7 @@ The static constraints available are
 - Restrict
 - Pattern - when using EQUALITY or REGEX
 
-#### Dynamic constraints
+**Dynamic constraints**
 Dynamic constraints are, as far as Deadbolt is concerned, completely arbitrary; they're handled by implementations of `DynamicResourceHandler`.
 
 The dynamic constraints available are
@@ -26,16 +26,17 @@ The dynamic constraints available are
 {pagebreak} 
 
 ### SubjectPresent
+
 `SubjectPresent` is one of the simplest constraints offered by Deadbolt.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access if the result is an `Optional` containing a value.
 
 `@SubjectPresent` can be used at the class or method level.
 
 |Parameter                |Type                              |Default             |Notes                                             |
 |-------------------------|----------------------------------|--------------------|--------------------------------------------------|
-| content                 | String                           |""                  | A hint to indicate the content  expected in      |
-|                         |                                  |                    | in the response.  This value will be passed      |
-|                         |                                  |                    | to `DeadboltHandler#onAccessFailure`.   The      |
-|                         |                                  |                    | value of this parameter is completely arbitrary. |
+| content                 | String                           |""                  | A hint to indicate the content  expected in the  |
+|                         |                                  |                    | response.  This value will be passed to          |
+|                         |                                  |                    | `DeadboltHandler#onAccessFailure`.   The value   |
+|                         |                                  |                    | of this parameter is completely arbitrary.       |
 |-------------------------|----------------------------------|--------------------|--------------------------------------------------|
 | handlerKey              | String                           |"defaultHandler"    | The name of a handler in the `HandlerCache`      |
 |-------------------------|----------------------------------|--------------------|--------------------------------------------------|
@@ -84,6 +85,7 @@ The dynamic constraints available are
 {pagebreak} 
 
 ### SubjectNotPresent
+
 `SubjectNotPresent` is the opposite in functionality of `SubjectPresent`.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access only if the result is an empty `Optional`.
 
 `@SubjectNotPresent` can be used at the class or method level.
@@ -91,7 +93,7 @@ The dynamic constraints available are
 |Parameter                |Type                              |Default             |Notes                                             |
 |-------------------------|----------------------------------|--------------------|--------------------------------------------------|
 | content                 | String                           |""                  | A hint to indicate the content  expected in      |
-|                         |                                  |                    | in the response.  This value will be passed      |
+|                         |                                  |                    | the response.  This value will be passed         |
 |                         |                                  |                    | to `DeadboltHandler#onAccessFailure`.   The      |
 |                         |                                  |                    | value of this parameter is completely arbitrary. |
 |-------------------------|----------------------------------|--------------------|--------------------------------------------------|
@@ -142,6 +144,7 @@ The dynamic constraints available are
 {pagebreak}
 
 ### Restrict
+
 The Restrict constraint requires that a) there is a subject present, and b) the subject has ALL the roles specified in the at least one of the `Group`s in the constraint.  The key thing to remember about `Restrict` is that it ANDs together the role names within a group and ORs between groups.
 
 #### Notation
@@ -160,7 +163,7 @@ The role names specified in the annotation can take two forms.
 |                         |                                  |                       | `Group` instances are OR'd together.             |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
 | content                 | String                           | ""                    | A hint to indicate the content  expected in      |
-|                         |                                  |                       | in the response.  This value will be passed      |
+|                         |                                  |                       | the response.  This value will be passed         |
 |                         |                                  |                       | to `DeadboltHandler#onAccessFailure`.   The      |
 |                         |                                  |                       | value of this parameter is completely arbitrary. |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
@@ -288,7 +291,7 @@ The most flexible constraint - this is a completely user-defined constraint that
 | meta                    | String                           |                       | Additional information passed into `isAllowed`.  |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
 | content                 | String                           | ""                    | A hint to indicate the content  expected in      |
-|                         |                                  |                       | in the response.  This value will be passed      |
+|                         |                                  |                       | the response.  This value will be passed         |
 |                         |                                  |                       | to `DeadboltHandler#onAccessFailure`.   The      |
 |                         |                                  |                       | value of this parameter is completely arbitrary. |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
@@ -341,44 +344,41 @@ In the following example, one of four things can happen:
 - A subject is not present, and invert is false
 - There is also a fallback assumption that invert is false if `ConfigKeys.PATTERN_INVERT` is not in the context; Deadbolt guarantees this will not happen, but it doesn't hurt to make sure
 
-So, in cases where we have a subject we just test like usual; the negation of the result, if required by `invert`, will be handled by Deadbolt.  In cases where there is no subject, we return the value of `invert` itself - if it's false, no negation will be internally applied, and if it's true it will be negated to false and access denied.  Thus, the test for `perm.getValue().contains("zombie")` is separated from the requirement to have a subject.
-
     @Override
     public F.Promise<Boolean> checkPermission(final String permissionValue,
                                               final DeadboltHandler deadboltHandler,
                                               final Http.Context ctx)
     {
         // just checking for zombies...just like I do every night before I go to bed
-        return deadboltHandler.getSubject(ctx)
-                              .map(option -> option.map(subject -> subject.getPermissions()
-                                                                          .stream()
-                                                                          .filter(perm -> perm.getValue().contains("zombie"))
-                                                                          .count() > 0)
-                                                   .orElseGet(() -> (Boolean)ctx.args.getOrDefault(ConfigKeys.PATTERN_INVERT,
-                                                                                                   false)));
+        return deadboltHandler.getSubject(ctx).map(
+            option -> option.map(subject -> subject.getPermissions()
+                                                   .stream()
+                                                   .filter(perm -> perm.getValue().contains("zombie"))
+                                                   .count() > 0)
+                            .orElseGet(() -> (Boolean) ctx.args.getOrDefault(ConfigKeys.PATTERN_INVERT,
+                                                                             false)));
     }
 
+So, in cases where we have a subject we just test like usual; the negation of the result, if required by `invert`, will be handled by Deadbolt.  In cases where there is no subject, we return the value of `invert` itself - if it's false, no negation will be internally applied, and if it's true it will be negated to false and access denied.  Thus, the test for `perm.getValue().contains("zombie")` is separated from the requirement to have a subject.
 
 Double negation sucks.
 
-|Parameter                |Type                              |Default                |Notes                                                         |
-|-------------------------|----------------------------------|-----------------------|--------------------------------------------------------------|
-| value                   | String                           |                       | The pattern value.  Its context depends on the pattern type. |
-|-------------------------|----------------------------------|-----------------------|--------------------------------------------------------------|
-| patternType             | PatternType                      | EQUALITY              | Additional information passed into `isAllowed`.              |
-|-------------------------|----------------------------------|-----------------------|--------------------------------------------------------------|
-| content                 | String                           | ""                    | A hint to indicate the content  expected in                  |
-|                         |                                  |                       | in the response.  This value will be passed                  |
-|                         |                                  |                       | to `DeadboltHandler#onAccessFailure`.   The                  |
-|                         |                                  |                       | value of this parameter is completely arbitrary.             |
-|-------------------------|----------------------------------|-----------------------|--------------------------------------------------------------|
-| handlerKey              | String                           | "defaultHandler"      | The name of a handler in the `HandlerCache`                  |
-|-------------------------|----------------------------------|-----------------------|--------------------------------------------------------------|
-| deferred                | boolean                          | false                 | If true, the interceptor will not be applied                 |
-|                         |                                  |                       | until a `DeadboltDeferred` annotation is                     |
-|                         |                                  |                       | encountered.                                                 |
-|-------------------------|----------------------------------|-----------------------|--------------------------------------------------------------|
-| invert                  | boolean                          | false                 | Invert the result of the test.                               |
+|Parameter                |Type                              |Default                |Notes                                                             |
+|-------------------------|----------------------------------|-----------------------|------------------------------------------------------------------|
+| value                   | String                           |                       | The pattern value.  Its context depends on the pattern type.     |
+|-------------------------|----------------------------------|-----------------------|------------------------------------------------------------------|
+| patternType             | PatternType                      | EQUALITY              | Additional information passed into `isAllowed`.                  |
+|-------------------------|----------------------------------|-----------------------|------------------------------------------------------------------|
+| content                 | String                           | ""                    | A hint to indicate the content  expected in the response.        |
+|                         |                                  |                       | This value will be passed to `DeadboltHandler#onAccessFailure`.  |
+|                         |                                  |                       | The value of this parameter is completely arbitrary.             |
+|-------------------------|----------------------------------|-----------------------|------------------------------------------------------------------|
+| handlerKey              | String                           | "defaultHandler"      | The name of a handler in the `HandlerCache`                      |
+|-------------------------|----------------------------------|-----------------------|------------------------------------------------------------------|
+| deferred                | boolean                          | false                 | If true, the interceptor will not be applied until a             |
+|                         |                                  |                       | `DeadboltDeferred` annotation is encountered.                    |
+|-------------------------|----------------------------------|-----------------------|------------------------------------------------------------------|
+| invert                  | boolean                          | false                 | Invert the result of the test.                                   |
 
 
 **Example 1**
@@ -457,7 +457,7 @@ You can also flip this on its head, and use it to show that a controller is expl
 |Parameter                |Type                              |Default                |Notes                                             |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
 | content                 | String                           | ""                    | A hint to indicate the content  expected in      |
-|                         |                                  |                       | in the response.  This value will be passed      |
+|                         |                                  |                       | the response.  This value will be passed         |
 |                         |                                  |                       | to `DeadboltHandler#onAccessFailure`.   The      |
 |                         |                                  |                       | value of this parameter is completely arbitrary. |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
@@ -467,52 +467,57 @@ You can also flip this on its head, and use it to show that a controller is expl
 |                         |                                  |                       | until a `DeadboltDeferred` annotation is         |
 |                         |                                  |                       | encountered.                                     |
 
-{pagebreak}
 
 ## Deferring method-level annotation-driven interceptors
 Play executes method-level annotations before controller-level annotations. This can cause issues when, for example, you want a particular action to be applied for method and before the method annotations. A good example is `Security.Authenticated(Secured.class)`, which sets a user’s user name for `request().username()`. Combining this with method-level annotations that require a user would fail, because the user would not be present at the time the method interceptor is invoked.
 
 One way around this is to apply `Security.Authenticated` on every method, which violates DRY and causes bloat.
 
-    public class DeferredController extends Controller
+{lang=java}
+~~~~~~~
+public class DeferredController extends Controller
+{
+    @Security.Authenticated(Secured.class)
+    @Restrict(value="admin")
+    public F.Promise<Result> someAdminFunction()
     {
-        @Security.Authenticated(Secured.class)
-        @Restrict(value="admin")
-        public F.Promise<Result> someAdminFunction()
-        {
-            return F.Promise.promise(accessOk::render)
-                            .map(Results::ok);
-        }
-
-        @Security.Authenticated(Secured.class)
-        @Restrict(value="editor")
-        public F.Promise<Result> someEditorFunction()
-        {
-            return F.Promise.promise(accessOk::render)
-                            .map(Results::ok);
-        }
+        return F.Promise.promise(accessOk::render)
+                        .map(Results::ok);
     }
+
+    @Security.Authenticated(Secured.class)
+    @Restrict(value="editor")
+    public F.Promise<Result> someEditorFunction()
+    {
+        return F.Promise.promise(accessOk::render)
+                        .map(Results::ok);
+    }
+}
+~~~~~~~
 
 A better way is to set the `deferred` parameter of the Deadbolt annotation to `true`, and then use `@DeferredDeadbolt` at the controller level to execute the method-level annotations at controller-annotation time. Since annotations are processed in order of declaration, you can specify `@DeferredDeadbolt` after `@Security.Authenticated` and so achieve the desired effect.
 
-    @Security.Authenticated(Secured.class)
-    @DeferredDeadbolt
-    public class DeferredController extends Controller
+{title="Deferring authorization checks", lang=java}
+~~~~~~~
+@Security.Authenticated(Secured.class)
+@DeferredDeadbolt
+public class DeferredController extends Controller
+{
+    @Restrict(value="admin", deferred=true)
+    public F.Promise<Result> someAdminFunction()
     {
-        @Restrict(value="admin", deferred=true)
-        public F.Promise<Result> someAdminFunction()
-        {
-            return F.Promise.promise(accessOk::render)
-                            .map(Results::ok);
-        }
-
-        @Restrict(value="editor", deferred=true)
-        public F.Promise<Result> someEditorFunction()
-        {
-            return F.Promise.promise(accessOk::render)
-                            .map(Results::ok);
-        }
+        return F.Promise.promise(accessOk::render)
+                        .map(Results::ok);
     }
+
+    @Restrict(value="editor", deferred=true)
+    public F.Promise<Result> someEditorFunction()
+    {
+        return F.Promise.promise(accessOk::render)
+                        .map(Results::ok);
+    }
+}
+~~~~~~~
 
 Specifying a controller-level restriction as `deferred` will work, if the annotation is higher in the annotation list than `@DeferredDeadbolt` annotation, but this is essentially pointless.  If your constraint is already at the class level, there's no need to defer it.  Just ensure it appears below any other annotations you wish to have processed first.
 
@@ -521,15 +526,14 @@ Specifying a controller-level restriction as `deferred` will work, if the annota
 ## Invoking DeadboltHandler#beforeAuthCheck independently
 `DeadboltHandler#beforeAuthCheck` is invoked by each interceptor prior to running the actual constraint tests.  If the method call returns an empty `Optional`, the constraint is applied, otherwise the contained in the `Optional` result is returned.  The same logic can be invoked independently, using the `@BeforeAccess` annotation, in which case the call to `beforeRoleCheck` itself becomes the constraint.  Or, to say it in code,
 
-    result = preAuth(true, ctx, deadboltHandler)
-              .flatMap(preAuthResult -> preAuthResult.map(F.Promise::pure)
-                                                     .orElseGet(() -> delegate.call(ctx))
-
-#### Scope
+{lang=java}
+~~~~~~~
+result = preAuth(true, ctx, deadboltHandler)
+          .flatMap(preAuthResult -> preAuthResult.map(F.Promise::pure)
+                                                 .orElseGet(() -> delegate.call(ctx))
+~~~~~~~
 
 `@BeforeAccess` can be used at the class or method level.
-
-#### Parameters
 
 |Parameter                |Type                              | Default               |Notes                                             |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
@@ -545,8 +549,6 @@ Specifying a controller-level restriction as `deferred` will work, if the annota
 |                         |                                  |                       | until a DeadboltDeferred annotation is           |
 |                         |                                  |                       | encountered.                                     |
 
-{pagebreak}
-
 ## Customising the inputs of annotation-driven actions
 One of the problems with Deadbolt's annotations is they require strings to specify, for example, role names or pattern values.  It would be far safer to use enums, but this is not possible for a module - it would completely kill the generic applicability of the annotations.  If Deadbolt shipped with an enum containing roles, how would you extend it?  You would be stuck with whatever was specified, or forced to fork the codebase and customise it.  Similarly, annotations can neither implement interfaces or be extended.
 
@@ -560,78 +562,93 @@ Here, I'll explain how to customise the Restrict constraint to use enums as anno
 
 To start, create an enum that represents your roles.
 
-    public enum MyRoles implements Role
-    {
-        foo,
-        bar,
-        hurdy;
+{title="Using an enum to define roles", lang=java}
+~~~~~~~
+public enum MyRoles implements Role
+{
+    foo,
+    bar,
+    hurdy;
 
-        @Override
-        public String getRoleName()
-        {
-            return name();
-        }
+    @Override
+    public String getRoleName()
+    {
+        return name();
     }
+}
+~~~~~~~
 
 To allow the AND/OR syntax that `Restrict` uses, another annotation to group them together is required.
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Documented
-    public @interface MyRolesGroup
-    {
-        MyRoles[] value();
-    }
+{lang=java}
+~~~~~~~
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface MyRolesGroup
+{
+    MyRoles[] value();
+}
+~~~~~~~
 
 Next, create a new annotation to drive your custom version of Restrict.  Note that an array of `MyRoles` values can be placed in the annotation.  The standard `Restrict` annotation is also present to provide further configuration.  This means your customisations are minimised. 
 
-    @With(CustomRestrictAction.class)
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.METHOD, ElementType.TYPE})
-    @Documented
-    @Inherited
-    public @interface CustomRestrict
-    {
-        MyRolesGroup[] value();
+{title="Defining a custom entry point", lang=java}
+~~~~~~~
+@With(CustomRestrictAction.class)
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Documented
+@Inherited
+public @interface CustomRestrict
+{
+    MyRolesGroup[] value();
 
-        Restrict config();
-    }
+    Restrict config();
+}
+~~~~~~~
 
 The code above contains `@With(CustomRestrictAction.class)` in order to specify the action that should be triggered by the annotation.  This action can be implemented as follows. 
 
-    @Override
-    public Result call(Http.Context context) throws Throwable
+{title="Mapping custom roles to Deadbolt's requirements", lang=java}
+~~~~~~~
+@Override
+public Result call(Http.Context context) throws Throwable
+{
+    final CustomRestrict outerConfig = configuration;
+    final RestrictAction restrictAction = new RestrictAction(configuration.config(),
+                                                             this.delegate)
     {
-        final CustomRestrict outerConfig = configuration;
-        final RestrictAction restrictAction = new RestrictAction(configuration.config(),
-                                                                 this.delegate)
+        @Override
+        public List<String[]> getRoleGroups()
         {
-            @Override
-            public List<String[]> getRoleGroups()
+            final List<String[]> roleGroups = new ArrayList<>();
+            for (MyRolesGroup mrg : outerConfig.value())
             {
-                final List<String[]> roleGroups = new ArrayList<>();
-                for (MyRolesGroup mrg : outerConfig.value())
+                final List<String> group = new ArrayList<>();
+                for (MyRoles role : mrg.value())
                 {
-                    final List<String> group = new ArrayList<>();
-                    for (MyRoles role : mrg.value())
-                    {
-                        group.add(role.getName());
-                    }
-                    roleGroups.add(group.toArray(group.size()));
+                    group.add(role.getName());
                 }
-                return roleGroups;
+                roleGroups.add(group.toArray(group.size()));
             }
-        };
-        return restrictAction.call(context);
-    }
+            return roleGroups;
+        }
+    };
+    return restrictAction.call(context);
+}
+~~~~~~~
 
 To use your custom annotation, you apply it as you would any other Deadbolt annotation.
 
-    @CustomRestrict(value = {MyRoles.foo, MyRoles.bar}, config = @Restrict(""))
-    public static F.Promise<Result> customRestrictOne() 
-    {
-        return F.Promise.promise(accessOk::render)
-                        .map(Results::ok);
-    }
+{title="Using custom roles", lang=java}
+~~~~~~~
+@CustomRestrict(value = {MyRoles.foo, MyRoles.bar}, config = @Restrict(""))
+public static F.Promise<Result> customRestrictOne() 
+{
+    return F.Promise.promise(accessOk::render)
+                    .map(Results::ok);
+}
+~~~~~~~
 
 Each customisable action has one or more extension points.  These are
 
