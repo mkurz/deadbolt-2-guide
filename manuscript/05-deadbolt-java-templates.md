@@ -325,7 +325,7 @@ The most flexible constraint - this is a completely user-defined constraint that
 | name                    | String                 |                               | The name of the constraint, passed into the      |
 |                         |                        |                               | `DynamicResourceHandler`.                        |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
-| meta                    | PatternType            | null                          |                                                  |
+| meta                    | String                 | null                          |                                                  |
 |                         |                        |                               |                                                  |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
 | timeout                 | () -> Long             | A function returning          | The timeout applied to blocking calls.           |
