@@ -26,13 +26,13 @@ Sometimes, you don't need fine-grained checks - you just need to see if there is
 
 #### Action builder
 
-**Example 1.  Allow access to a function if there is a subject present**
+**Example 1**
 
     // DeadboltHandler#getSubject must result in a Some for access to be granted
     def someFunctionA = actionBuilder.SubjectPresentAction().defaultHandler() { Ok(accessOk()) }
     
 
-**Example 2.  Deny access to a function if there is a subject present**
+**Example 2**
 
     // DeadboltHandler#getSubject must result in a None for access to be granted
     def someFunctionB = actionBuilder.SubjectNotPresentAction().defaultHandler() { Ok(accessOk()) }
@@ -83,20 +83,23 @@ AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `Li
 |                         |                                  |                    | constraint.                                      |
 
 
-**Example 1.  The subject must have the *foo* role**
+**Example 1**
 
+    // The subject must have the foo role
     def restrictedFunctionA = actionBuilder.RestrictAction("foo")
                                            .defaultHandler() { Ok(accessOk()) }
     
 
-**Example 2.  The subject must have the *foo* and *bar* roles**
+**Example 2**
 
+    // The subject must have the foo and bar roles
     def restrictedFunctionB = actionBuilder.RestrictAction("foo", "bar")
                                           .defaultHandler() { Ok(accessOk()) }
     
 
-**Example 3.  The subject must have the *foo* or *bar* roles**
+**Example 3**
 
+    // The subject must have the foo or bar roles
     def restrictedFunctionC = actionBuilder.RestrictAction(List(Array("foo"), Array("bar")))
                                            .defaultHandler() { Ok(accessOk()) }
 
