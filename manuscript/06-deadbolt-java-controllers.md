@@ -25,7 +25,7 @@ The dynamic constraints available are
 
 {pagebreak} 
 
-### SubjectPresent
+## SubjectPresent
 
 `SubjectPresent` is one of the simplest constraints offered by Deadbolt.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access if the result is an `Optional` containing a value.
 
@@ -84,7 +84,7 @@ The dynamic constraints available are
 
 {pagebreak} 
 
-### SubjectNotPresent
+## SubjectNotPresent
 
 `SubjectNotPresent` is the opposite in functionality of `SubjectPresent`.  It checks if there is a subject present, by invoking `DeadboltHandler#getSubject` and allows access only if the result is an empty `Optional`.
 
@@ -143,7 +143,7 @@ The dynamic constraints available are
 
 {pagebreak}
 
-### Restrict
+## Restrict
 
 The Restrict constraint requires that a) there is a subject present, and b) the subject has ALL the roles specified in the at least one of the `Group`s in the constraint.  The key thing to remember about `Restrict` is that it ANDs together the role names within a group and ORs between groups.
 
@@ -278,7 +278,7 @@ The role names specified in the annotation can take two forms.
 
 {pagebreak} 
 
-### Dynamic
+## Dynamic
 
 The most flexible constraint - this is a completely user-defined constraint that uses DynamicResourceHandler#isAllowed to determine access.
 
@@ -311,7 +311,7 @@ The most flexible constraint - this is a completely user-defined constraint that
 
 {pagebreak} 
 
-### Pattern
+## Pattern
 
 This uses the Subjects Permissions to perform a variety of checks.
 
@@ -417,7 +417,7 @@ Double negation sucks.
 
 {pagebreak}
 
-### Unrestricted
+## Unrestricted
 `Unrestricted` allows you to over-ride more general constraints, i.e. if a controller is annotated with `@SubjectPresent` but you want an action in there to be accessible to everyone.
 
     @SubjectPresent
