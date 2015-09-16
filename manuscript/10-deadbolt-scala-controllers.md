@@ -19,6 +19,7 @@ Using the `DeadboltActions` class, you can compose constrained functions. To get
 You now have functions equivalent to those of the builders mentioned above. In the following examples I'm using the default handler, i.e. no handler is specified, but it's also possible to use a different handler with `handler = <some handler, possibly from the handler cache>`.
 
 {pagebreak}
+
 ### SubjectPresent and SubjectNotPresent
 
 Sometimes, you don't need fine-grained checks - you just need to see if there is a user present (or not present).
@@ -38,6 +39,11 @@ Sometimes, you don't need fine-grained checks - you just need to see if there is
 
 
 #### Action composition
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | HandlerCache.apply()          | The DeadboltHandler instance to use.             |
+
 
 **Example 1**
 
@@ -59,6 +65,7 @@ Sometimes, you don't need fine-grained checks - you just need to see if there is
     }
 
 {pagebreak}
+
 ### Restrict
 
 Restrict uses a `Subject`'s `Role`s to perform AND/OR/NOT checks. The values given to the builder must match the `Role.name` of the subject's roles.
@@ -66,8 +73,6 @@ Restrict uses a `Subject`'s `Role`s to perform AND/OR/NOT checks. The values giv
 AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
 
 #### Action composition
-
-###### Parameters
 
 |Parameter                |Type                              |Default             |Notes                                             |
 |-------------------------|----------------------------------|--------------------|--------------------------------------------------|
@@ -96,8 +101,6 @@ AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `Li
                                            .defaultHandler() { Ok(accessOk()) }
 
 #### Action composition
-
-###### Parameters
 
 |Parameter                |Type                              |Default                |Notes                                             |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
@@ -128,6 +131,7 @@ AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `Li
 
 
 {pagebreak}
+
 ### Pattern
 
 Pattern uses a `Subject`'s `Permission`s to perform a variety of checks.  The check depends on the pattern type.
@@ -143,8 +147,6 @@ It's possible to invert the constraint by setting the `invert` parameter to true
 - CUSTOM - the `DynamicResourceHandler#checkPermission` function, where the OPPOSITE of the Boolean resolved from the function is used to determine access
 
 #### Action builder
-
-###### Parameters
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -187,8 +189,6 @@ It's possible to invert the constraint by setting the `invert` parameter to true
                                           .defaultHandler() { Ok(accessOk()) }
 
 #### Action composition
-
-###### Parameters
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -247,13 +247,12 @@ It's possible to invert the constraint by setting the `invert` parameter to true
     }
 
 {pagebreak}
+
 ### Dynamic
 
 The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
 
 #### Action builder
-
-###### Parameters
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -271,8 +270,6 @@ The most flexible constraint - this is a completely user-defined constraint that
 
 
 #### Action composition
-
-###### Parameters
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
