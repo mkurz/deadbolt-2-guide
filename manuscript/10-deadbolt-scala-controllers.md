@@ -72,7 +72,7 @@ Restrict uses a `Subject`'s `Role`s to perform AND/OR/NOT checks. The values giv
 
 AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
 
-#### Action composition
+#### Action builder
 
 |Parameter                |Type                              |Default             |Notes                                             |
 |-------------------------|----------------------------------|--------------------|--------------------------------------------------|
