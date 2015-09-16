@@ -10,64 +10,6 @@ To get started, inject `ActionBuilders` into your controller.
 
 You now have builders for all the constraint types, which we'll take a quick look at in a minute. In the following examples I'm using the default handler, i.e. `.defaultHandler()` but it's also possible to use a different handler with `.key(HandlerKey)` or pass in a handler directly using `.withHandler(DeadboltHandler)`.
 
-### SubjectPresent and SubjectNotPresent
-
-Sometimes, you don't need fine-grained checks - you just need to see if there is a user present (or not present).
-
-    // DeadboltHandler#getSubject must result in a Some for access to be granted
-    def someFunctionA = actionBuilder.SubjectPresentAction().defaultHandler() { Ok(accessOk()) }
-    
-    // DeadboltHandler#getSubject must result in a None for access to be granted
-    def someFunctionB = actionBuilder.SubjectNotPresentAction().defaultHandler() { Ok(accessOk()) }
-
-### Restrict
-
-Restrict uses a `Subject`'s `Role`s to perform AND/OR/NOT checks. The values given to the builder must match the `Role.name` of the subject's roles.
-
-AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
-
-    // subject must have the "foo" role 
-    def restrictedFunctionA = actionBuilder.RestrictAction("foo")
-                                           .defaultHandler() { Ok(accessOk()) }
-    
-    // subject must have the "foo" AND "bar" roles 
-    def restrictedFunctionB = actionBuilder.RestrictAction("foo", "bar")
-                                          .defaultHandler() { Ok(accessOk()) }
-    
-    // subject must have the "foo" OR "bar" roles 
-    def restrictedFunctionC = actionBuilder.RestrictAction(List(Array("foo"), Array("bar")))
-                                           .defaultHandler() { Ok(accessOk()) }
-
-### Pattern
-
-Pattern uses a `Subject`'s `Permission`s to perform a variety of checks.
-
-    // subject must have a permission with the exact value "admin.printer" 
-    def permittedFunctionA = actionBuilders.PatternAction(value = "admin.printer",
-                                                          patternType = PatternType.EQUALITY)
-                                           .defaultHandler() { Ok(accessOk()) }
-    
-    // subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" 
-    def permittedFunctionB = actionBuilders.PatternAction(value = "(.)*\.printer", 
-                                                          patternType = PatternType.REGEX)
-                                          .defaultHandler() { Ok(accessOk()) }
-    
-    // the checkPermssion function of the current handler's DynamicResourceHandler will be 
-    // used.  This is a user-defined test
-    def permittedFunctionC = actionBuilders.PatternAction(value = "something arbitrary", 
-                                                          patternType = PatternType.CUSTOM)
-                                           .defaultHandler() { Ok(accessOk()) }
-
-### Dynamic
-
-The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
-
-    // use the constraint associated with the name "someClassifier" to control access
-    def foo = actionBuilder.DynamicAction(name = "someClassifier")
-                           .defaultHandler() { Ok(accessOk()) }
-
-{pagebreak}
-
 ## Controller constraints with action composition
 
 Using the `DeadboltActions` class, you can compose constrained functions. To get started, inject `DeadboltActions` into your controller.
@@ -76,11 +18,28 @@ Using the `DeadboltActions` class, you can compose constrained functions. To get
 
 You now have functions equivalent to those of the builders mentioned above. In the following examples I'm using the default handler, i.e. no handler is specified, but it's also possible to use a different handler with `handler = <some handler, possibly from the handler cache>`.
 
+{pagebreak}
 ### SubjectPresent and SubjectNotPresent
 
 Sometimes, you don't need fine-grained checks - you just need to see if there is a user present (or not present).
 
-And yes, that line was copy and pasted from the action builder section for the same constraints to underline one thing: the constraint behaviour is identical, no matter how you prefer to define them.
+#### Action builder
+
+**Example 1.  Allow access to a function if there is a subject present**
+
+    // DeadboltHandler#getSubject must result in a Some for access to be granted
+    def someFunctionA = actionBuilder.SubjectPresentAction().defaultHandler() { Ok(accessOk()) }
+    
+
+**Example 2.  Deny access to a function if there is a subject present**
+
+    // DeadboltHandler#getSubject must result in a None for access to be granted
+    def someFunctionB = actionBuilder.SubjectNotPresentAction().defaultHandler() { Ok(accessOk()) }
+
+
+#### Action composition
+
+**Example 1**
 
     // DeadboltHandler#getSubject must result in a Some for access to be granted
     def someFunctionA = deadbolt.SubjectPresent() {
@@ -89,18 +48,66 @@ And yes, that line was copy and pasted from the action builder section for the s
       }
     }
 
+
+**Example 2**
+
     // DeadboltHandler#getSubject must result in a None for access to be granted
     def someFunctionB = deadbolt.SubjectNotPresent() {
       Action {
         Ok(accessOk())
       }
     }
-    
+
+{pagebreak}
 ### Restrict
-    
+
 Restrict uses a `Subject`'s `Role`s to perform AND/OR/NOT checks. The values given to the builder must match the `Role.name` of the subject's roles.
 
 AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
+
+#### Action composition
+
+###### Parameters
+
+|Parameter                |Type                              |Default             |Notes                                             |
+|-------------------------|----------------------------------|--------------------|--------------------------------------------------|
+| roles                   | List[Array[String]]              |                    | Allows the definition of OR'd constraints by     |
+|                         |                                  |                    | having multiple arrays in the list.              |
+|-------------------------|----------------------------------|--------------------|--------------------------------------------------|
+| roles                   | String*                          |                    | A short-hand of defining a single role or AND    |
+|                         |                                  |                    | constraint.                                      |
+
+
+**Example 1.  The subject must have the *foo* role**
+
+    def restrictedFunctionA = actionBuilder.RestrictAction("foo")
+                                           .defaultHandler() { Ok(accessOk()) }
+    
+
+**Example 2.  The subject must have the *foo* and *bar* roles**
+
+    def restrictedFunctionB = actionBuilder.RestrictAction("foo", "bar")
+                                          .defaultHandler() { Ok(accessOk()) }
+    
+
+**Example 3.  The subject must have the *foo* or *bar* roles**
+
+    def restrictedFunctionC = actionBuilder.RestrictAction(List(Array("foo"), Array("bar")))
+                                           .defaultHandler() { Ok(accessOk()) }
+
+#### Action composition
+
+###### Parameters
+
+|Parameter                |Type                              |Default                |Notes                                             |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| roleGroups              | List[Array[String]]              |                       | Allows the definition of OR'd constraints by     |
+|                         |                                  |                       | having multiple arrays in the list.              |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler                  | HandlerCache.apply()  | The DeadboltHandler instance to use.             |
+
+
+**Example 1**
 
     // subject must have the "foo" role 
     def restrictedFunctionA = deadbolt.Restrict(List(Array("foo")) {
@@ -109,6 +116,9 @@ AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `Li
       }
     }
 
+
+**Example 2**
+
     // subject must have the "foo" AND "bar" roles 
     def restrictedFunctionB = deadbolt.Restrict(List(Array("foo", "bar")) {
       Action {
@@ -116,42 +126,165 @@ AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `Li
       }
     }
 
-    // subject must have the "foo" OR "bar" roles 
-    def restrictedFunctionC = deadbolt.Restrict(List(Array("foo"), Array("bar"))) {
-      Action {
-        Ok(accessOk())
-      }
-    }
 
+{pagebreak}
 ### Pattern
 
-Pattern uses a `Subject`'s `Permission`s to perform a variety of checks.
+Pattern uses a `Subject`'s `Permission`s to perform a variety of checks.  The check depends on the pattern type.
+
+- EQUALITY - the subject must have a permission whose value is exactly the same as the `value` parameter
+- REGEX - the subject must have a permission which matches the regular expression given in the `value` parameter
+- CUSTOM - the `DynamicResourceHandler#checkPermission` function is used to determine access 
+
+It's possible to invert the constraint by setting the `invert` parameter to true.  This changes the meaning of the constraint in the following way.
+
+- EQUALITY - the subject must NOT have a permission whose value is exactly the same as the `value` parameter
+- REGEX - the subject must have NO permissions that match the regular expression given in the `value` parameter
+- CUSTOM - the `DynamicResourceHandler#checkPermission` function, where the OPPOSITE of the Boolean resolved from the function is used to determine access
+
+#### Action builder
+
+###### Parameters
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| value                   | String                 |                               | The value of the permission.                     |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| patternType             | PatternType            |                               | One of EQUALITY, REGEX or CUSTOM.                |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| invert                  | Boolean                | false                         | Invert the result of the test                    |
+
+
+**Example 1**
 
     // subject must have a permission with the exact value "admin.printer" 
-    def permittedFunctionA = deadbolt.Pattern("admin.printer", PatternType.EQUALITY) {
-      Action {
-        Ok(accessOk())
-      }
-    }
+    def permittedFunctionA = actionBuilders.PatternAction(value = "admin.printer",
+                                                          patternType = PatternType.EQUALITY)
+                                           .defaultHandler() { Ok(accessOk()) }
+
+
+**Example 2**
 
     // subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" 
-    def permittedFunctionB = deadbolt.Pattern("(.)*\.printer", PatternType.REGEX) {
-      Action {
-        Ok(accessOk())
-      }
-    }
-    
-    // the checkPermssion function of the current handler's DynamicResourceHandler will be used.  This is a 
-    // user-defined test in DynamicResourceHandler#checkPermission.
-    def permittedFunctionC = deadbolt.Pattern("something arbitrary", PatternType.CUSTOM) {
+    def permittedFunctionB = actionBuilders.PatternAction(value = "(.)*\.printer", 
+                                                          patternType = PatternType.REGEX)
+                                          .defaultHandler() { Ok(accessOk()) }
+
+**Example 3**
+
+    // the checkPermssion function of the current handler's DynamicResourceHandler will be 
+    // used.  This is a user-defined test
+    def permittedFunctionC = actionBuilders.PatternAction(value = "something arbitrary", 
+                                                          patternType = PatternType.CUSTOM)
+                                           .defaultHandler() { Ok(accessOk()) }
+
+**Example 4**
+
+    // subject must have no permissions that end in .printer
+    def permittedFunctionB = actionBuilders.PatternAction(value = "(.)*\.printer", 
+                                                          patternType = PatternType.REGEX,
+                                                          invert = true)
+                                          .defaultHandler() { Ok(accessOk()) }
+
+#### Action composition
+
+###### Parameters
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| value                   | String                 |                               | The value of the permission.                     |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| patternType             | PatternType            |                               | One of EQUALITY, REGEX or CUSTOM.                |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | HandlerCache.apply()          | The DeadboltHandler instance to use.             |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| invert                  | Boolean                | false                         | Invert the result of the test                    |
+
+
+**Example 1**
+
+    // subject must have a permission with the exact value "admin.printer" 
+    def permittedFunctionA = deadbolt.Pattern(value = "admin.printer", 
+                                              patternType = PatternType.EQUALITY) {
       Action {
         Ok(accessOk())
       }
     }
 
+
+**Example 2**
+
+    // subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" 
+    def permittedFunctionB = deadbolt.Pattern(value = "(.)*\.printer", 
+                                              patternType = PatternType.REGEX) {
+      Action {
+        Ok(accessOk())
+      }
+    }
+
+
+**Example 3**
+
+    // the checkPermssion function of the current handler's DynamicResourceHandler will be used.  This is a 
+    // user-defined test in DynamicResourceHandler#checkPermission.
+    def permittedFunctionC = deadbolt.Pattern(value = "something arbitrary", 
+                                              patternType = PatternType.CUSTOM) {
+      Action {
+        Ok(accessOk())
+      }
+    }
+
+
+**Example 4**
+
+    // subject must have no permissions that end in .printer
+    def permittedFunctionB = deadbolt.Pattern(value = "(.)*\.printer", 
+                                              patternType = PatternType.REGEX,
+                                              invert = true) {
+      Action {
+        Ok(accessOk())
+      }
+    }
+
+{pagebreak}
 ### Dynamic
 
 The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
+
+#### Action builder
+
+###### Parameters
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| name                    | String                 |                               | The name of the constraint.                      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| meta                    | String                 |                               | Additional information for the constraint        |
+|                         |                        |                               | implementation to use.                           |
+
+
+**Example 1**
+
+    // use the constraint associated with the name "someClassifier" to control access
+    def foo = actionBuilder.DynamicAction(name = "someClassifier")
+                           .defaultHandler() { Ok(accessOk()) }
+
+
+#### Action composition
+
+###### Parameters
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| name                    | String                 |                               | The name of the constraint.                      |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| meta                    | String                 |                               | Additional information for the constraint        |
+|                         |                        |                               | implementation to use.                           |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | HandlerCache.apply()          | The DeadboltHandler instance to use.             |
+
+
+**Example 1**
 
     // use the constraint associated with the name "someClassifier" to control access
     def foo = deadbolt.Dynamic(name = "someClassifier") {
