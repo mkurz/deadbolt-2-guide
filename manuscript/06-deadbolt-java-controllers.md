@@ -341,6 +341,8 @@ In the following example, one of four things can happen:
 - A subject is not present, and invert is false
 - There is also a fallback assumption that invert is false if `ConfigKeys.PATTERN_INVERT` is not in the context; Deadbolt guarantees this will not happen, but it doesn't hurt to make sure
 
+So, in cases where we have a subject we just test like usual; the negation of the result, if required by `invert`, will be handled by Deadbolt.  In cases where there is no subject, we return the value of `invert` itself - if it's false, no negation will be internally applied, and if it's true it will be negated to false and access denied.  Thus, the test for `perm.getValue().contains("zombie")` is separated from the requirement to have a subject.
+
     @Override
     public F.Promise<Boolean> checkPermission(final String permissionValue,
                                               final DeadboltHandler deadboltHandler,
@@ -352,11 +354,10 @@ In the following example, one of four things can happen:
                                                                           .stream()
                                                                           .filter(perm -> perm.getValue().contains("zombie"))
                                                                           .count() > 0)
-                                                   .orElseGet(() -> (Boolean) ctx.args.getOrDefault(ConfigKeys.PATTERN_INVERT,
-                                                                                                    false)));
+                                                   .orElseGet(() -> (Boolean)ctx.args.getOrDefault(ConfigKeys.PATTERN_INVERT,
+                                                                                                   false)));
     }
 
-So, in cases where we have a subject we just test like usual; the negation of the result, if required by `invert`, will be handled by Deadbolt.  In cases where there is no subject, we return the value of `invert` itself - if it's false, no negation will be internally applied, and if it's true it will be negated to false and access denied.  Thus, the test for `perm.getValue().contains("zombie")` is separated from the requirement to have a subject.
 
 Double negation sucks.
 
