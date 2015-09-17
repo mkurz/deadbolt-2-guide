@@ -11,6 +11,7 @@ For a Play application that uses server-side rendering, Deadbolt provides severa
 
 
 A couple of basic use cases are
+
 * Only displayed a "Log in" link if there is no user present
 * Even if a user is logged in, only display an "Administration" link if the user has administrative privileges
 
@@ -79,7 +80,6 @@ There are two hooks that can be used to integrate Deadbolt into your application
 
 
 A HTTP request has a life cycle.  At a high level, it is
-
 
 * Sent
 * Received
