@@ -121,7 +121,7 @@ in place of the query parameter example used earlier,
 	
 The benefits of clean URLs are many - they can be bookmarked, are easily shared and are more easily cached, to name just a few.  The one thing that path parameters are not, in Play, is available at runtime.  There is no way in Play to get these parameters without deriving them manually by comparing the route definition with the actual URL.
 
-It has been stated on the Play Framework group (<https://groups.google.com/d/msg/play-framework/9qssE8s8aQA/pGXHrBf7gOYJ>) that path parameters should not be accessible by calling Request#queryStrings(), because path parameters are not query parameters.  This is correct, but doesn't really help in the real world - things will be much easier when path parameters can be accessed as easily as other request information.
+It has [been stated](https://groups.google.com/d/msg/play-framework/9qssE8s8aQA/pGXHrBf7gOYJ) on the Play Framework group that path parameters should not be accessible by calling Request#queryStrings(), because path parameters are not query parameters.  This is correct, but doesn't really help in the real world - things will be much easier when path parameters can be accessed as easily as other request information.
 
 ## Strategies for using dynamic resource handlers
 To the best of my knowledge, there are two ways in which to use dynamic resource handlers in Deadbolt:
