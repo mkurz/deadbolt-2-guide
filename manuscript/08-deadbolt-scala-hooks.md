@@ -33,50 +33,61 @@ Instead, you need to implement your own version.  This trait extends `Function[H
 
 Here's one possible implementation, using hard-coded handlers.
 
-    @Singleton
-    class MyHandlerCache extends HandlerCache {
-        val defaultHandler: DeadboltHandler = new MyDeadboltHandler
+{title="An example handler cache", lang=scala}
+~~~~~~~
+@Singleton
+class MyHandlerCache extends HandlerCache {
+    val defaultHandler: DeadboltHandler = new MyDeadboltHandler
 
-        // HandlerKeys is an user-defined object, containing instances of a case class that extends HandlerKey
-        val handlers: Map[Any, DeadboltHandler] = Map(HandlerKeys.defaultHandler -> defaultHandler,
-                                                      HandlerKeys.altHandler -> new MyDeadboltHandler(Some(MyAlternativeDynamicResourceHandler)),
-                                                      HandlerKeys.userlessHandler -> new MyUserlessDeadboltHandler)
+    // HandlerKeys is an user-defined object, containing instances 
+    // of a case class that extends HandlerKey
+    val handlers: Map[Any, DeadboltHandler] = 
+        Map(HandlerKeys.defaultHandler -> defaultHandler,
+            HandlerKeys.altHandler -> 
+                  new MyDeadboltHandler(Some(MyAlternativeDynamicResourceHandler)),
+            HandlerKeys.userlessHandler -> new MyUserlessDeadboltHandler)
 
-        // Get the default handler.
-        override def apply(): DeadboltHandler = defaultHandler
+    // Get the default handler.
+    override def apply(): DeadboltHandler = defaultHandler
 
-        // Get a named handler
-        override def apply(handlerKey: HandlerKey): DeadboltHandler = handlers(handlerKey)
-    }
-
+    // Get a named handler
+    override def apply(handlerKey: HandlerKey): DeadboltHandler = handlers(handlerKey)
+}
+~~~~~~~
 
 Finally, create a small module which binds your implementation.
 
+{title="Binding the handler cache", lang=scala}
+~~~~~~~
+package com.example.modules
 
-    package com.example.modules
+import be.objectify.deadbolt.scala.cache.HandlerCache
+import play.api.inject.{Binding, Module}
+import play.api.{Configuration, Environment}
+import com.example.security.MyHandlerCache
 
-    import be.objectify.deadbolt.scala.cache.HandlerCache
-    import play.api.inject.{Binding, Module}
-    import play.api.{Configuration, Environment}
-    import com.example.security.MyHandlerCache
-
-    class CustomDeadboltHook extends Module {
-        override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = Seq(
-            bind[HandlerCache].to[MyHandlerCache]
-        )
-    }
+class CustomDeadboltHook extends Module {
+    override def bindings(environment: Environment, 
+                          configuration: Configuration): Seq[Binding[_]] = Seq(
+        bind[HandlerCache].to[MyHandlerCache]
+    )
+}
+~~~~~~~
 
 ## application.conf
 
 ### Declare the necessary modules
 Both `be.objectify.deadbolt.scala.DeadboltModule` and your custom bindings module must be declared in the configuration.
 
-    play {
-      modules {
-        enabled += be.objectify.deadbolt.scala.DeadboltModule
-        enabled += com.example.modules.CustomDeadboltHook
-      }
-    }
+{title="Enable your module", lang=javascript}
+~~~~~~~
+play {
+  modules {
+    enabled += be.objectify.deadbolt.scala.DeadboltModule
+    enabled += com.example.modules.CustomDeadboltHook
+  }
+}
+~~~~~~~
 
 ### Tweaking Deadbolt
 Deadbolt Scala-specific configuration lives in the `deadbolt.scala` namespace.
@@ -87,29 +98,39 @@ There is one setting, `deadbolt.scala.view-timeout`, which is millisecond timeou
 
 Personally, I prefer the HOCON (Human-Optimized Config Object Notation) syntax supported by Play, so I would recommend the following:
 
-    deadbolt {
-      scala {
-        view-timeout=500
-      }
-    }
+{title="Example configuration", lang=javascript}
+~~~~~~~
+deadbolt {
+  scala {
+    view-timeout=500
+  }
+}
+~~~~~~~
 
 ### Execution context
 
 By default, all futures are executed in the scala.concurrent.ExecutionContext.global context. If you want to provide a separate execution context, you can plug it into Deadbolt by implementing the DeadboltExecutionContextProvider trait.
 
-    import be.objectify.deadbolt.scala.DeadboltExecutionContextProvider
-    
-    class CustomDeadboltExecutionContextProvider extends DeadboltExecutionContextProvider {
-        override def get(): ExecutionContext = ???
-    }
+{title="Providing a custom execution context", lang=javascript}
+~~~~~~~
+import be.objectify.deadbolt.scala.DeadboltExecutionContextProvider
+
+class CustomDeadboltExecutionContextProvider extends DeadboltExecutionContextProvider {
+    override def get(): ExecutionContext = ???
+}
+~~~~~~~
 
 **NB:** This provider is invoked twice, once in `DeadboltActions` and once in `ViewSupport`.  Make sure you take this into account when you implement the `get()` function.
 
 Once you've implemented the provider, you need to declare it in your custom module (see `CustomDeadboltHook` above for further information).
 
-    class CustomDeadboltHook extends Module {
-        override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = Seq(
-            bind[HandlerCache].to[MyHandlerCache],
-            bind[DeadboltExecutionContextProvider].to[CustomDeadboltExecutionContextProvider]
-        )
-    }
+{title="Binding the custom execution context provider", lang=javascript}
+~~~~~~~
+class CustomDeadboltHook extends Module {
+    override def bindings(environment: Environment, 
+                          configuration: Configuration): Seq[Binding[_]] = Seq(
+        bind[HandlerCache].to[MyHandlerCache],
+        bind[DeadboltExecutionContextProvider].to[CustomDeadboltExecutionContextProvider]
+    )
+}
+~~~~~~~
