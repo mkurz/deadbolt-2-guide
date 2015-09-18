@@ -44,43 +44,44 @@ The dynamic constraints available are
 |                         |                                  |                    | until a `DeadboltDeferred` annotation is         |
 |                         |                                  |                    | encountered.                                     |
 
-**Example 1**
+{title="Require a subject for all actions in a controller", lang=java}
+~~~~~~~
+@SubjectPresent
+public class MyController extends Controller
+{
+    public F.Promise<Result> index()
+    {
+        // this method will not be invoked unless there is a subject present
+        ...
+    }
+
+    public F.Promise<Result> search()
+    {
+        // this method will not be invoked unless there is a subject present
+        ...
+    }
+}
+~~~~~~~
+
+{title="Require a subject for specific actions in a controller", lang=java}
+~~~~~~~
+// Deny access to a single method of a controller unless there is a user present
+public class MyController extends Controller
+{
+    public F.Promise<Result> index()
+    {
+        // this method is accessible to anyone
+        ...
+    }
 
     @SubjectPresent
-    public class MyController extends Controller
+    public F.Promise<Result> search()
     {
-        public F.Promise<Result> index()
-        {
-            // this method will not be invoked unless there is a subject present
-            ...
-        }
-
-        public F.Promise<Result> search()
-        {
-            // this method will not be invoked unless there is a subject present
-            ...
-        }
+        // this method will not be invoked unless there is a subject present
+        ...
     }
-
-
-**Example 2**
-
-    // Deny access to a single method of a controller unless there is a user present
-    public class MyController extends Controller
-    {
-        public F.Promise<Result> index()
-        {
-            // this method is accessible to anyone
-            ...
-        }
-
-        @SubjectPresent
-        public F.Promise<Result> search()
-        {
-            // this method will not be invoked unless there is a subject present
-            ...
-        }
-    }
+}
+~~~~~~~
 
 {pagebreak} 
 
@@ -103,43 +104,44 @@ The dynamic constraints available are
 |                         |                                  |                    | until a `DeadboltDeferred` annotation is         |
 |                         |                                  |                    | encountered.                                     |
 
-**Example 1**
+{title="Require NO subject for all actions in a controller", lang=java}
+~~~~~~~
+@SubjectNotPresent
+public class MyController extends Controller
+{
+    public F.Promise<Result> index()
+    {
+        // this method will not be invoked if there is a subject present
+        ...
+    }
+
+    public F.Promise<Result> search()
+    {
+        // this method will not be invoked if there is a subject present
+        ...
+    }
+}
+~~~~~~~
+
+{title="Require NO subject for specific actions in a controller", lang=java}
+~~~~~~~
+// Deny access to a single method of a controller if there is a user present
+public class MyController extends Controller
+{
+    public F.Promise<Result> index()
+    {
+        // this method is accessible to anyone
+        ...
+    }
 
     @SubjectNotPresent
-    public class MyController extends Controller
+    public F.Promise<Result> search()
     {
-        public F.Promise<Result> index()
-        {
-            // this method will not be invoked if there is a subject present
-            ...
-        }
-
-        public F.Promise<Result> search()
-        {
-            // this method will not be invoked if there is a subject present
-            ...
-        }
+        // this method will not be invoked unless there is not a subject present
+        ...
     }
-
-
-**Example 2**
-
-    // Deny access to a single method of a controller if there is a user present
-    public class MyController extends Controller
-    {
-        public F.Promise<Result> index()
-        {
-            // this method is accessible to anyone
-            ...
-        }
-
-        @SubjectNotPresent
-        public F.Promise<Result> search()
-        {
-            // this method will not be invoked unless there is not a subject present
-            ...
-        }
-    }
+}
+~~~~~~~
 
 {pagebreak}
 
@@ -173,108 +175,112 @@ The role names specified in the annotation can take two forms.
 |                         |                                  |                       | until a `DeadboltDeferred` annotation is         |
 |                         |                                  |                       | encountered.                                     |
 
-**Example 1**
-
-    // For every action in a controller, require the `Subject` to have *editor* and *viewer* roles
-    @Restrict(@Group{"editor", "viewer"})
-    public class MyController extends Controller
+{title="Both roles are required for all actions in a controller", lang=java}
+~~~~~~~
+@Restrict(@Group{"editor", "viewer"})
+public class MyController extends Controller
+{
+    public F.Promise<Result> index()
     {
-        public F.Promise<Result> index()
-        {
-            // this method will not be invoked unless the subject has editor and viewer roles
-            ...
-        }
-
-        public F.Promise<Result> search()
-        {
-            // this method will not be invoked unless the subject has editor and viewer roles
-            ...
-        }
+        // this method will not be invoked unless the subject has editor and viewer roles
+        ...
     }
+
+    public F.Promise<Result> search()
+    {
+        // this method will not be invoked unless the subject has editor and viewer roles
+        ...
+    }
+}
+~~~~~~~
 
 **Example 2**
 
-    // Each action has different role requirements
-    public class MyController extends Controller
+{title="Each action has different role requirements", lang=java}
+~~~~~~~
+public class MyController extends Controller
+{
+    @Restrict(@Group("editor"))
+    public F.Promise<Result> edit()
     {
-        @Restrict(@Group("editor"))
-        public F.Promise<Result> edit()
-        {
-            // this method will not be invoked unless the subject has editor role
-            ...
-        }
-
-        @Restrict(@Group("view"))
-        public F.Promise<Result> view()
-        {
-            // this method will not be invoked unless the subject has viewer role
-            ...
-        }
+        // this method will not be invoked unless the subject has editor role
+        ...
     }
 
-**Example 3**
-
-    @Restrict(@Group({"editor", "!viewer"}))
-    public class MyController extends Controller
+    @Restrict(@Group("view"))
+    public F.Promise<Result> view()
     {
-        public F.Promise<Result> edit()
-        {
-            // this method will not be invoked unless the subject has editor role AND does NOT have the viewer role
-            ...
-        }
+        // this method will not be invoked unless the subject has viewer role
+        ...
+    }
+}
+~~~~~~~
 
-        public F.Promise<Result> view()
-        {
-            // this method will not be invoked unless the subject has editor role AND does NOT have the viewer role
-            ...
-        }
+{title="Negated roles", lang=java}
+~~~~~~~
+@Restrict(@Group({"editor", "!viewer"}))
+public class MyController extends Controller
+{
+    public F.Promise<Result> edit()
+    {
+        // this method will not be invoked unless the subject has editor role AND does NOT have the viewer role
+        ...
     }
 
-**Example 4**
-
-    @Restrict({@Group("editor"), @Group("viewer")})
-    public class MyController extends Controller
+    public F.Promise<Result> view()
     {
-        public F.Promise<Result> index()
-        {
-            // this method will not be invoked unless the subject has editor or viewer roles
-            ...
-        }
+        // this method will not be invoked unless the subject has editor role AND does NOT have the viewer role
+        ...
+    }
+}
+~~~~~~~
 
-        public F.Promise<Result> search()
-        {
-            // this method will not be invoked unless the subject has editor or viewer roles
-            ...
-        }
+{title="Require the 'editor' OR 'viewer' roles", lang=java}
+~~~~~~~
+@Restrict({@Group("editor"), @Group("viewer")})
+public class MyController extends Controller
+{
+    public F.Promise<Result> index()
+    {
+        // this method will not be invoked unless the subject has editor or viewer roles
+        ...
     }
 
-**Example 5**
-
-    // Require the subject to have (customer AND viewer) OR (support AND viewer) roles
-    @Restrict({@Group({"customer", "viewer"}), @Group({"support", "viewer"})})
-    public class MyController extends Controller
+    public F.Promise<Result> search()
     {
-        public F.Promise<Result> index()
-        {
-            // this method will not be invoked unless the subject has customer and viewer,
-            // or support and viewer roles
-            ...
-        }
+        // this method will not be invoked unless the subject has editor or viewer roles
+        ...
     }
+}
+~~~~~~~
 
-**Example 6**
-
-    // Require the subject to have (customer AND NOT viewer) OR (support" AND NOT *viewer* roles
-    @Restrict({@Group("customer", "!viewer"), @Group("support", "!viewer")})
-    public class MyController extends Controller
+{title="Require the subject to have (customer AND viewer) OR (support AND viewer) roles", lang=java}
+~~~~~~~
+@Restrict({@Group({"customer", "viewer"}), @Group({"support", "viewer"})})
+public class MyController extends Controller
+{
+    public F.Promise<Result> index()
     {
-        public F.Promise<Result> index()
-        {
-            // this method will not be invoked unless the subject has customer but not viewer roles,
-            // or support but not viewer roles
-            ...
-        }
+        // this method will not be invoked unless the subject has customer and viewer,
+        // or support and viewer roles
+        ...
     }
+}
+~~~~~~~
+
+{title="Require the subject to have (customer AND NOT viewer) OR (support AND NOT viewer) roles", lang=java}
+~~~~~~~
+@Restrict({@Group("customer", "!viewer"), @Group("support", "!viewer")})
+public class MyController extends Controller
+{
+    public F.Promise<Result> index()
+    {
+        // this method will not be invoked unless the subject has customer but not viewer roles,
+        // or support but not viewer roles
+        ...
+    }
+}
+~~~~~~~
 
 {pagebreak} 
 
@@ -301,13 +307,14 @@ The most flexible constraint - this is a completely user-defined constraint that
 |                         |                                  |                       | until a `DeadboltDeferred` annotation is         |
 |                         |                                  |                       | encountered.                                     |
 
-**Example 1**
-
-    @Dynamic(name = "name of the test")
-    public F.Promise<Result> someMethod() 
-    {
-        // the method will execute if the user-defined test returns true
-    }
+{title="Using a user-defined test to determine access", lang=java}
+~~~~~~~
+@Dynamic(name = "name of the test")
+public F.Promise<Result> someMethod() 
+{
+    // the method will execute if the user-defined test returns true
+}
+~~~~~~~
 
 {pagebreak} 
 
@@ -344,24 +351,28 @@ In the following example, one of four things can happen:
 - A subject is not present, and invert is false
 - There is also a fallback assumption that invert is false if `ConfigKeys.PATTERN_INVERT` is not in the context; Deadbolt guarantees this will not happen, but it doesn't hurt to make sure
 
-    @Override
-    public F.Promise<Boolean> checkPermission(final String permissionValue,
-                                              final DeadboltHandler deadboltHandler,
-                                              final Http.Context ctx)
-    {
-        // just checking for zombies...just like I do every night before I go to bed
-        return deadboltHandler.getSubject(ctx).map(
-            option -> option.map(subject -> subject.getPermissions()
-                                                   .stream()
-                                                   .filter(perm -> perm.getValue().contains("zombie"))
-                                                   .count() > 0)
-                            .orElseGet(() -> (Boolean) ctx.args.getOrDefault(ConfigKeys.PATTERN_INVERT,
-                                                                             false)));
-    }
+{title="Inverting the test, not the need to have a subject", lang=java}
+~~~~~~~
+@Override
+public F.Promise<Boolean> checkPermission(final String permissionValue,
+                                          final DeadboltHandler deadboltHandler,
+                                          final Http.Context ctx)
+{
+    // just checking for zombies...just like I do every night before I go to bed
+    return deadboltHandler.getSubject(ctx)
+                          .map(option -> 
+        option.map(subject -> subject.getPermissions()
+                                     .stream()
+                                     .filter(perm -> perm.getValue().contains("zombie"))
+                                     .count() > 0)
+              .orElseGet(() -> (Boolean) ctx.args.getOrDefault(ConfigKeys.PATTERN_INVERT,
+                                                               false)));
+}
+~~~~~~~
 
 So, in cases where we have a subject we just test like usual; the negation of the result, if required by `invert`, will be handled by Deadbolt.  In cases where there is no subject, we return the value of `invert` itself - if it's false, no negation will be internally applied, and if it's true it will be negated to false and access denied.  Thus, the test for `perm.getValue().contains("zombie")` is separated from the requirement to have a subject.
 
-Double negation sucks.
+**TL;DR** Double negation sucks.
 
 |Parameter                |Type                              |Default                |Notes                                                             |
 |-------------------------|----------------------------------|-----------------------|------------------------------------------------------------------|
@@ -381,76 +392,86 @@ Double negation sucks.
 | invert                  | boolean                          | false                 | Invert the result of the test.                                   |
 
 
-**Example 1**
-
-    @Pattern("admin.printer")
-    public F.Promise<Result> someMethodA()
-    {
-        // subject must have a permission with the exact value "admin.printer"
-    }
-
-
-**Example 2**
-
-    @Pattern(value = "(.)*\.printer", patternType = PatternType.REGEX)
-    public F.Promise<Result> someMethodB() 
-    {
-        // subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer"
-    }
+{title="Testing for equality of permissions", lang=java}
+~~~~~~~
+@Pattern("admin.printer")
+public F.Promise<Result> someMethodA()
+{
+    // subject must have a permission with the exact value "admin.printer"
+}
+~~~~~~~
 
 
-**Example 3**
+{title="Testing for regex matching of permissions", lang=java}
+~~~~~~~
+@Pattern(value = "(.)*\.printer", patternType = PatternType.REGEX)
+public F.Promise<Result> someMethodB() 
+{
+    // subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer"
+}
+~~~~~~~
 
-    @Pattern(value = "something arbitrary", patternType = PatternType.CUSTOM)
-    public F.Promise<Result> someMethodC() 
-    {
-        // the checkPermssion method of the current handler's DynamicResourceHandler will be used.  This is a user-defined test
-    }
 
-**Example 4**
+{title="Using a user-defined test to determine access", lang=java}
+~~~~~~~
+@Pattern(value = "something arbitrary", patternType = PatternType.CUSTOM)
+public F.Promise<Result> someMethodC() 
+{
+    // the checkPermssion method of the current handler's DynamicResourceHandler will be used.  This is a user-defined test
+}
+~~~~~~~
 
-    @Pattern(value = "(.)*\.printer", patternType = PatternType.REGEX, invert = true)
-    public F.Promise<Result> someMethodB() 
-    {
-        // subject must have no permissions that end in .printer
-    }
+{title="Inverting the test", lang=java}
+~~~~~~~
+@Pattern(value = "(.)*\.printer", patternType = PatternType.REGEX, invert = true)
+public F.Promise<Result> someMethodB() 
+{
+    // subject must have no permissions that end in .printer
+}
+~~~~~~~
 
 {pagebreak}
 
 ## Unrestricted
 `Unrestricted` allows you to over-ride more general constraints, i.e. if a controller is annotated with `@SubjectPresent` but you want an action in there to be accessible to everyone.
 
-    @SubjectPresent
-    public class MyController extends Controller
+{lang=java}
+~~~~~~~
+@SubjectPresent
+public class MyController extends Controller
+{
+    public F.Promise<Result> foo()
     {
-        public F.Promise<Result> foo()
-        {
-            // a subject must be present for this to be accessible
-        }
-        
-        @Unrestricted
-        public F.Promise<Result> bar()
-        {
-            // anyone can access this action
-        }
+        // a subject must be present for this to be accessible
     }
+        
+    @Unrestricted
+    public F.Promise<Result> bar()
+    {
+        // anyone can access this action
+    }
+}
+~~~~~~~
 
 You can also flip this on its head, and use it to show that a controller is explicitly unrestricted - used in this way, it's a marker of intent rather than something functional.  Because method-level constraints are evaluated first, you can have still protected actions within an `@Unrestricted` controller.
 
-    @Unrestricted
-    public class MyController extends Controller
+{lang=java}
+~~~~~~~
+@Unrestricted
+public class MyController extends Controller
+{
+    @SubjectPresent
+    public F.Promise<Result> foo()
     {
-        @SubjectPresent
-        public F.Promise<Result> foo()
-        {
-            // a subject must be present for this to be accessible
-        }
-        
-        public F.Promise<Result> bar()
-        {
-            // anyone can access this action
-        }
+        // a subject must be present for this to be accessible
     }
+        
+    public F.Promise<Result> bar()
+    {
+        // anyone can access this action
+    }
+}
+~~~~~~~
 
 `@Unrestricted` can be used at the class or method level.
 
