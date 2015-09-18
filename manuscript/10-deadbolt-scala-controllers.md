@@ -20,11 +20,11 @@ You now have functions equivalent to those of the builders mentioned above. In t
 
 {pagebreak}
 
-### SubjectPresent and SubjectNotPresent
+## SubjectPresent and SubjectNotPresent
 
 Sometimes, you don't need fine-grained checks - you just need to see if there is a user present (or not present).
 
-#### Action builder
+### Action builder
 
 {title="DeadboltHandler#getSubject must result in a Some for access to be granted", lang=scala}
 ~~~~~~~
@@ -37,7 +37,7 @@ def someFunctionA = actionBuilder.SubjectPresentAction().defaultHandler() { Ok(a
 def someFunctionB = actionBuilder.SubjectNotPresentAction().defaultHandler() { Ok(accessOk()) }
 ~~~~~~~
 
-#### Action composition
+### Action composition
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -64,13 +64,13 @@ def someFunctionB = deadbolt.SubjectNotPresent() {
 
 {pagebreak}
 
-### Restrict
+## Restrict
 
 Restrict uses a `Subject`'s `Role`s to perform AND/OR/NOT checks. The values given to the builder must match the `Role.name` of the subject's roles.
 
 AND is defined as an `Array[String]` (or more correctly, `String*`), OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
 
-#### Action builder
+### Action builder
 
 |Parameter                |Type                              |Default             |Notes                                             |
 |-------------------------|----------------------------------|--------------------|--------------------------------------------------|
@@ -100,7 +100,7 @@ def restrictedFunctionC = actionBuilder.RestrictAction(List(Array("foo"), Array(
 ~~~~~~~
 
 
-#### Action composition
+### Action composition
 
 |Parameter                |Type                              |Default                |Notes                                             |
 |-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
@@ -140,7 +140,7 @@ def restrictedFunctionB = deadbolt.Restrict(List(Array("foo"), Array("bar")) {
 
 {pagebreak}
 
-### Pattern
+## Pattern
 
 Pattern uses a `Subject`'s `Permission`s to perform a variety of checks.  The check depends on the pattern type.
 
@@ -154,7 +154,7 @@ It's possible to invert the constraint by setting the `invert` parameter to true
 - REGEX - the subject must have NO permissions that match the regular expression given in the `value` parameter
 - CUSTOM - the `DynamicResourceHandler#checkPermission` function, where the OPPOSITE of the Boolean resolved from the function is used to determine access
 
-#### Action builder
+### Action builder
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -197,7 +197,7 @@ def permittedFunctionB = actionBuilders.PatternAction(value = "(.)*\.printer",
                                       .defaultHandler() { Ok(accessOk()) }
 ~~~~~~~
 
-#### Action composition
+### Action composition
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -257,11 +257,11 @@ def permittedFunctionB = deadbolt.Pattern(value = "(.)*\.printer",
 
 {pagebreak}
 
-### Dynamic
+## Dynamic
 
 The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
 
-#### Action builder
+### Action builder
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -278,7 +278,7 @@ def foo = actionBuilder.DynamicAction(name = "someClassifier")
 ~~~~~~~
 
 
-#### Action composition
+### Action composition
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
