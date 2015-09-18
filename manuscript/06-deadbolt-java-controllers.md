@@ -6,6 +6,7 @@ One very important point to bear in mind is the order in which Play evaluates an
 As with the previous chapter, here is a a breakdown of all the Java annotation-driven interceptors available in Deadbolt Java, with parameters, usages and tips and tricks.
 
 **Static constraints**
+
 Static constraints, are implemented entirely within Deadbolt because it can finds all the information needed to determine authorization automatically.  For example, if a constraint requires two roles, "foo" and "bar" to be present, the logic behind the `Restrict` constraint knows it just needs to check the roles of the current subject.
 
 The static constraints available are
@@ -16,6 +17,7 @@ The static constraints available are
 - Pattern - when using EQUALITY or REGEX
 
 **Dynamic constraints**
+
 Dynamic constraints are, as far as Deadbolt is concerned, completely arbitrary; they're handled by implementations of `DynamicResourceHandler`.
 
 The dynamic constraints available are
