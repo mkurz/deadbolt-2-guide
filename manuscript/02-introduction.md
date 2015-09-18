@@ -12,11 +12,11 @@ Back in September 2010, I was embarking on my first project using the Play! Fram
 The user guide for Deadbolt 1 - which I can still highly recommend if you need authorization support in your Play 1 apps - starts with this:
 
 
-> Deadbolt is an authorisation mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax. It is based on the 
+> Deadbolt is an authorization mechanism for defining access rights to certain controller methods or parts of a view using a simple AND/OR/NOT syntax. It is based on the 
 > original Secure module that comes with the Play! framework.
 > 
 > Note that Deadbolt doesn’t provide authentication! You can still use the existing Secure module alongside Deadbolt to provide authentication, and in cases where 
-> authentication is handled outside your app you can just hook up the authorisation mechanism to whatever auth system is used.
+> authentication is handled outside your app you can just hook up the authorization mechanism to whatever auth system is used.
 
 
 How much of this still holds true for Deadbolt 2?  More than 50% and less than 100%, give or take. 
@@ -44,3 +44,26 @@ The first reason is the alphabet.
 
 
 The second is that by writing the Scala section last, I have a chance to increase my knowledge of a language that is frequently beautiful and occasionally a little bit like an ice-cream headache.
+
+
+## Target audience
+
+This book works on the following assumptions: 
+
+- you have a working knowledge of Play
+- you know Java or Scala (or both)
+
+If you want to learn Play, check the Play website for detailed tutorials. There are also several books that you might want to check out.
+
+- [Play For Scala](https://www.manning.com/books/play-for-scala)
+- [Play For Java](https://www.manning.com/books/play-for-java)
+- [Learning Play Framework 2](https://www.packtpub.com/web-development/learning-play-framework-2)
+- [Reactive Web Applications](https://www.manning.com/books/reactive-web-applications) covers more advanced usage of Play
+
+
+## Feedback
+
+Any and all feedback of this is greatly appreciated.  You can send feedback using...
+
+- [The book's repository](https://github.com/schaloner/deadbolt-2-guide) on GithHub
+- By emailing (deadbolt-book@objectify.be)[deadbolt-book@objectify.be]

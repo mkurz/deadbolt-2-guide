@@ -26,10 +26,10 @@ Template security is like painted hardboard - the features it offers are certain
 
 
 ## Controller-level restrictions
-The controller layer is most vunerable part of your application to external attack, because that is the part that's visible to whichever networks it is on.  Attack in this sense may be a concious attack on your system, or inadvertant damage caused by unauthorised users who are otherwise authenticated in your system.  Deadbolt can't help with the first type, but it's ideal for the second.
+The controller layer is most vunerable part of your application to external attack, because that is the part that's visible to whichever networks it is on.  Attack in this sense may be a concious attack on your system, or inadvertant damage caused by unauthorized users who are otherwise authenticated in your system.  Deadbolt can't help with the first type, but it's ideal for the second.
 
 
-Controller authorization blocks or allows access to an action.  Whereas template restrictions are essentially a boolean evaluation - "if user satisfies these conditions, then...", controller authorization is quite a bit more powerful.  Specifically, while an authorised result is generated from your application code, unauthorised results can be customised as required; you can return any status code you like along with any content you like.  If you're feeling particularly nasty, why not send a 302 redirect to a not-suitable-for-work website?  If you want to, the option is there.
+Controller authorization blocks or allows access to an action.  Whereas template restrictions are essentially a boolean evaluation - "if user satisfies these conditions, then...", controller authorization is quite a bit more powerful.  Specifically, while an authorized result is generated from your application code, unauthorized results can be customised as required; you can return any status code you like along with any content you like.  If you're feeling particularly nasty, why not send a 302 redirect to a not-suitable-for-work website?  If you want to, the option is there.
 
 
 ## Core entities
@@ -37,7 +37,7 @@ Deadbolt has three interfaces which can be used to represent authorization entit
 
 
 ### Subject
-The core entity of Deadbolt is the `be.objectify.deadbolt.core.models.Subject` interface.  This should be implemented by whatever your application considers to be an authorisable entity - in other words, a user.  Its sole purpose is to give access to the rights and permissions held by the user.
+The core entity of Deadbolt is the `be.objectify.deadbolt.core.models.Subject` interface.  This should be implemented by whatever your application considers to be an authorizable entity - in other words, a user.  Its sole purpose is to give access to the rights and permissions held by the user.
 
 
     public interface Subject

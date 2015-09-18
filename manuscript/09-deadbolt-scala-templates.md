@@ -33,7 +33,7 @@ Each constraint has an `xOr` variant, which allows you to render content in plac
         @repositionSatellite
         @engageLightSpeed
     } {
-        <marquee>Sorry, you are not authorised to perform clichéd actions from B movies.  Suffer the marquee!</marquee>
+        <marquee>Sorry, you are not authorized to perform clichéd actions from B movies.  Suffer the marquee!</marquee>
     }
 
 
