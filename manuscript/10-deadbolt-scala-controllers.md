@@ -182,8 +182,8 @@ def permittedFunctionB = actionBuilders.PatternAction(value = "(.)*\.printer",
 
 {title="checkPermission is used to determine access", lang=scala}
 ~~~~~~~
-// the checkPermssion function of the current handler's DynamicResourceHandler will be 
-// used.  This is a user-defined test
+// the checkPermssion function of the current handler's DynamicResourceHandler
+// will be used.  This is a user-defined test
 def permittedFunctionC = actionBuilders.PatternAction(value = "something arbitrary", 
                                                       patternType = PatternType.CUSTOM)
                                        .defaultHandler() { Ok(accessOk()) }
@@ -233,8 +233,8 @@ def permittedFunctionB = deadbolt.Pattern(value = "(.)*\.printer",
 
 {title="checkPermission is used to determine access", lang=scala}
 ~~~~~~~
-// the checkPermssion function of the current handler's DynamicResourceHandler will be used.  This is a 
-// user-defined test in DynamicResourceHandler#checkPermission.
+// the checkPermssion function of the current handler's DynamicResourceHandler
+// will be used.
 def permittedFunctionC = deadbolt.Pattern(value = "something arbitrary", 
                                           patternType = PatternType.CUSTOM) {
   Action {
