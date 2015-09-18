@@ -45,6 +45,12 @@ The first reason is the alphabet.
 
 The second is that by writing the Scala section last, I have a chance to increase my knowledge of a language that is frequently beautiful and occasionally a little bit like an ice-cream headache.
 
+## Versions
+
+The examples in this book are for Play 2.4, and use the following versions of Deadbolt
+
+- `"be.objectify" %% "deadbolt-java" % "2.4.3"`
+- `"be.objectify" %% "deadbolt-scala" % "2.4.1.1"`
 
 ## Target audience
 
