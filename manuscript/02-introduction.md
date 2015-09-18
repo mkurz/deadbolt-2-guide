@@ -72,4 +72,4 @@ If you want to learn Play, check the Play website for detailed tutorials. There 
 Any and all feedback of this is greatly appreciated.  You can send feedback using...
 
 - [The book's repository](https://github.com/schaloner/deadbolt-2-guide) on GithHub
-- By emailing (deadbolt-book@objectify.be)[deadbolt-book@objectify.be]
+- By emailing [deadbolt-book@objectify.be](mailto:deadbolt-book@objectify.be)
