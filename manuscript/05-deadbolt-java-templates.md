@@ -76,8 +76,9 @@ Making it a singleton allows you to keep a running count of the failure level;  
 
 ## SubjectPresent
 
-Sometimes, you don't need fine-grained checked - you just need to see if there **is a** user present
+Sometimes, you don't need fine-grained checked - you just need to see if there **is a** user present.
 
+**Import** `@import be.objectify.deadbolt.java.views.html.{subjectPresent, subjectPresentOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -127,6 +128,7 @@ A specific Deadbolt handler is used to obtain the subject.
 
 Sometimes, you don't need fine-grained checked - you just need to see if there **is no** user present
 
+**Import** `@import be.objectify.deadbolt.java.views.html.{subjectNotPresent, subjectNotPresentOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -173,6 +175,7 @@ A specific Deadbolt handler is used to obtain the subject.
 ## Restrict
 Use `Subject`s `Role`s to perform AND/OR/NOT checks.  The values given to the builder must match the `Role.name` of the subject's roles.
 
+**Import** `@import be.objectify.deadbolt.java.views.html.{restrict, restrictOr}`
 
 `la` and `as` are convenience functions for creating a `List<Array<String>>` and an `Array<String>`.  You can import both of them using
 
@@ -254,6 +257,7 @@ The subject is obtained from a specific handler, and must have the foo OR bar ro
 
 Use the `Subject`s `Permission`s to perform a variety of checks.
 
+**Import** `@import be.objectify.deadbolt.java.views.html.{pattern, patternOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -317,6 +321,7 @@ The subject and `DynamicResourceHandler` are obtained from a specific handler, a
 
 The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
 
+**Import** `@import be.objectify.deadbolt.java.views.html.{dynamic, dynamicOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|

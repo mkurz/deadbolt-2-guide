@@ -75,9 +75,9 @@ Making it a singleton allows you to keep a running count of the failure level;  
 
 ## SubjectPresent
 
-
 Sometimes, you don't need fine-grained checked - you just need to see if there **is a** user present.
 
+**Import** `@import be.objectify.deadbolt.scala.views.html.{subjectPresent, subjectPresentOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -125,6 +125,7 @@ A specific Deadbolt handler is used to obtain the subject.
 
 Sometimes, you don't need fine-grained checked - you just need to see if there **is no** user present.
 
+**Import** `@import be.objectify.deadbolt.scala.views.html.{subjectNotPresent, subjectNotPresentOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -169,12 +170,11 @@ A specific Deadbolt handler is used to obtain the subject.
 
 ## Restrict
 
-
 Use `Subject`s `Role`s to perform AND/OR/NOT checks.  The values given to the constraint must match the `Role.name` of the subject's roles.
-
 
 AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
 
+**Import** `@import be.objectify.deadbolt.scala.views.html.{restrict, restrictOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -231,6 +231,7 @@ The subject must have the "foo" OR "bar" roles, or fallback content will be disp
 
 Use the `Subject`s `Permission`s to perform a variety of checks.
 
+**Import** `@import be.objectify.deadbolt.scala.views.html.{pattern, patternOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
@@ -286,9 +287,9 @@ Fallback content is displayed if the user does not have a permission exactly mat
 
 ## Dynamic
 
-
 The most flexible constraint - this is a completely user-defined constraint that uses `DynamicResourceHandler#isAllowed` to determine access.
 
+**Import** `@import be.objectify.deadbolt.scala.views.html.{dynamic, dynamicOr}`
 
 |Parameter                |Type                    | Default                       | Notes                                            |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
