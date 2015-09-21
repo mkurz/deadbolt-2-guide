@@ -20,21 +20,15 @@ You now have functions equivalent to those of the builders mentioned above. In t
 
 {pagebreak}
 
-## SubjectPresent and SubjectNotPresent
+## SubjectPresent
 
-Sometimes, you don't need fine-grained checks - you just need to see if there is a user present (or not present).
+Sometimes, you don't need fine-grained checks - you just need to see if there **is** a user present.
 
 ### Action builder
 
 {title="DeadboltHandler#getSubject must result in a Some for access to be granted", lang=scala}
 ~~~~~~~
 def someFunctionA = actionBuilder.SubjectPresentAction().defaultHandler() { Ok(accessOk()) }
-~~~~~~~
-    
-
-{title="DeadboltHandler#getSubject must result in a None for access to be granted", lang=scala}
-~~~~~~~
-def someFunctionB = actionBuilder.SubjectNotPresentAction().defaultHandler() { Ok(accessOk()) }
 ~~~~~~~
 
 ### Action composition
@@ -52,6 +46,26 @@ def someFunctionA = deadbolt.SubjectPresent() {
   }
 }
 ~~~~~~~
+
+{pagebreak}
+
+## SubjectNotPresent
+
+Sometimes, you don't need fine-grained checks - you just need to see if there **is no** user present.
+
+### Action builder    
+
+{title="DeadboltHandler#getSubject must result in a None for access to be granted", lang=scala}
+~~~~~~~
+def someFunctionB = actionBuilder.SubjectNotPresentAction().defaultHandler() { Ok(accessOk()) }
+~~~~~~~
+
+### Action composition
+
+|Parameter                |Type                    | Default                       | Notes                                            |
+|-------------------------|------------------------|-------------------------------|--------------------------------------------------|
+| handler                 | DeadboltHandler        | HandlerCache.apply()          | The DeadboltHandler instance to use.             |
+
 
 {title="DeadboltHandler#getSubject must result in a None for access to be granted", lang=scala}
 ~~~~~~~
