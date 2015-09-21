@@ -59,13 +59,22 @@ This book works on the following assumptions:
 - you have a working knowledge of Play
 - you know Java or Scala (or both)
 
-If you want to learn Play, check the Play website for detailed tutorials. There are also several books that you might want to check out.
+If you want to learn Play, the [Play website](https://playframework.com/documentation/2.4.x/Home) is the best place to start.
+
+There are also several books that you might want to check out.
 
 - [Play For Scala](https://www.manning.com/books/play-for-scala)
 - [Play For Java](https://www.manning.com/books/play-for-java)
 - [Learning Play Framework 2](https://www.packtpub.com/web-development/learning-play-framework-2)
 - [Reactive Web Applications](https://www.manning.com/books/reactive-web-applications) covers more advanced usage of Play
 
+## Acknowledgements
+
+Nothing which attempts to be useful can gestate in a vacuum.  Many people donated their time, knowledge and critical capabilities to help make this book more useful.
+
+- Peter Hilton (@PeterHilton) - software developer, speaker, writer, author of "Play for Scala" and beer lover.
+- Francis De Brabandere (@somatik) - software developer, technology enthusiast, start-up founder and beer lover.
+- Daryl Greensill (@BigClumsyOaf) - todo: check one-line write-up
 
 ## Feedback
 
