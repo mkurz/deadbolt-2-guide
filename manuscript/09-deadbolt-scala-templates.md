@@ -4,13 +4,16 @@
 This is not a client-side DOM manipulation, but rather the exclusion of content when templates are rendered.  This also means that any logic inside the constrained content will not execute if authorization fails.
 
 
-    @subjectPresent {
-      <!-- paragraphs will not be rendered, satellites will not be repositioned -->
-      <!-- and light speed will not be engaged if no subject is present -->
-      <p>Let's see what this thing can do...</p>
-      @repositionSatellite
-      @engageLightSpeed
-    }
+{title="A subject is required for the content to be rendered", lang=scala}
+~~~~~~~
+@subjectPresent {
+  <!-- paragraphs will not be rendered, satellites will not be repositioned -->
+  <!-- and light speed will not be engaged if no subject is present -->
+  <p>Let's see what this thing can do...</p>
+  @repositionSatellite
+  @engageLightSpeed
+}
+~~~~~~~
 
 
 One important thing to note here is that templates are blocking, so any Futures used need to be completed for the resuly to be used in the template constraints.  As a result, each constraint can take a function that expresses a Long, which is the millisecond value of the timeout.  It defaults to 1000 milliseconds, but you can change this globally by setting the `deadbolt.scala.view-timeout` value in your `application.conf`.
@@ -25,16 +28,18 @@ By default, template constraints use the default Deadbolt handler but as with co
 ### Fallback content
 Each constraint has an `xOr` variant, which allows you to render content in place of the unauthorized content.  This takes the form `<constraint>Or`, for example `subjectPresentOr`
 
-
-    @subjectPresentOr {
-        <!-- paragraphs will not be rendered, satellites will not be repositioned -->
-        <!-- and light speed will not be engaged if no subject is present -->
-        <p>Let's see what this thing can do...</p>
-        @repositionSatellite
-        @engageLightSpeed
-    } {
-        <marquee>Sorry, you are not authorized to perform clichéd actions from B movies.  Suffer the marquee!</marquee>
-    }
+{title="Providing fallback content when a subject is not present", lang=scala}
+~~~~~~~
+@subjectPresentOr {
+    <!-- paragraphs will not be rendered, satellites will not be repositioned -->
+    <!-- and light speed will not be engaged if no subject is present -->
+    <p>Let's see what this thing can do...</p>
+    @repositionSatellite
+    @engageLightSpeed
+} {
+    <marquee>Sorry, you are not authorized to perform clichéd actions from B movies.  Suffer the marquee!</marquee>
+}
+~~~~~~~
 
 
 In each case, the fallback content is defined as a second `Content` block following the primary body.
@@ -48,11 +53,14 @@ Because templates use blocking calls when rendering, the futures returned from t
 
 If you want to change the default timeout, define `deadbolt.scala.view-timeout` in your configuration and give it a millisecond value, e.g.
 
-    deadbolt {
-      scala {
-        view-timeout=1500
-      }
-    }
+{title="Define timeouts in milliseconds", lang=javascript}
+~~~~~~~
+deadbolt {
+  scala {
+    view-timeout=1500
+  }
+}
+~~~~~~~
 
 ##### Use a supplier to provide a timeout
 
@@ -62,13 +70,16 @@ All Deadbolt templates have a `timeout` parameter which defaults to expressing t
 
 That's a good question.  And the answer is - you need to implement `be.objectify.deadbolt.scala.TemplateFailureListener` and bind it using a module; see "Expose your DeadboltHandlers with a HandlerCache" section in chapter 8 for more details on this.  If you re-use that chapter 8 module, the binding will look something like this.
 
-    class CustomDeadboltHook extends Module {
-        override def bindings(environment: Environment, 
-                              configuration: Configuration): Seq[Binding[_]] = Seq(
-            bind[HandlerCache].to[MyHandlerCache],
-            bind[TemplateFailureListener].to[MyTemplateFailureListener]
-        )
-    }
+{title="Declaring a template failure listener", lang=scala}
+~~~~~~~
+class CustomDeadboltHook extends Module {
+    override def bindings(environment: Environment, 
+                          configuration: Configuration): Seq[Binding[_]] = Seq(
+        bind[HandlerCache].to[MyHandlerCache],
+        bind[TemplateFailureListener].to[MyTemplateFailureListener]
+    )
+}
+~~~~~~~
 
 Making it a singleton allows you to keep a running count of the failure level;  if you're using it for other purposes, then scope it accordingly.
 
