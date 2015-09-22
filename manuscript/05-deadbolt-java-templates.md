@@ -217,6 +217,7 @@ AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is 
 |                         |                        | if it's defined, otherwise    |                                                  |
 |                         |                        | 1000L                         |                                                  |
 
+### Examples
 
 {title="The subject is obtained from the default handler, and must have the foo role", lang=scala}
 ~~~~~~~
@@ -296,9 +297,7 @@ Use the `Subject`s `Permission`s to perform a variety of checks.
 |                         |                        | 1000L                         |                                                  |
 
 
-**Example 1**
-
-The subject and `DynamicResourceHandler` are obtained from the default handler, and .
+### Examples
 
 {title="The subject must have a permission with the exact value 'admin.printer'", lang=scala}
 ~~~~~~~
@@ -389,6 +388,8 @@ The most flexible constraint - this is a completely user-defined constraint that
 |                         |                        | 1000L                         |                                                  |
 
 
+### Examples
+
 {title="The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content", lang=scala}
 ~~~~~~~
 @import be.objectify.deadbolt.java.views.html.dynamic
@@ -408,7 +409,6 @@ The most flexible constraint - this is a completely user-defined constraint that
 }
 ~~~~~~~
 
-The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content with some dynamically-defined meta data.
 
 {title="Meta data does not have to be hard-coded", lang=scala}
 ~~~~~~~
