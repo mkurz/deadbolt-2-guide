@@ -63,7 +63,8 @@ All Deadbolt templates have a `timeout` parameter which defaults to expressing t
 That's a good question.  And the answer is - you need to implement `be.objectify.deadbolt.scala.TemplateFailureListener` and bind it using a module; see "Expose your DeadboltHandlers with a HandlerCache" section in chapter 8 for more details on this.  If you re-use that chapter 8 module, the binding will look something like this.
 
     class CustomDeadboltHook extends Module {
-        override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = Seq(
+        override def bindings(environment: Environment, 
+                              configuration: Configuration): Seq[Binding[_]] = Seq(
             bind[HandlerCache].to[MyHandlerCache],
             bind[TemplateFailureListener].to[MyTemplateFailureListener]
         )
