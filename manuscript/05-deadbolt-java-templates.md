@@ -9,13 +9,16 @@ Using template constraints, you can exclude portions of templates from being gen
 This is not a client-side DOM manipulation, but rather the exclusion of content when templates are rendered.  This also means that any logic inside the constrained content will not execute if authorization fails.
 
 
-    @subjectPresent {
-        <!-- paragraphs will not be rendered, satellites will not be repositioned -->
-        <!-- and light speed will not be engaged if no subject is present -->
-        <p>Let's see what this thing can do...</p>
-        @repositionSatellite
-        @engageLightSpeed
-    }
+{title="A subject is required for the content to be rendered", lang=scala}
+~~~~~~~
+@subjectPresent {
+    <!-- paragraphs will not be rendered, satellites will not be repositioned -->
+    <!-- and light speed will not be engaged if no subject is present -->
+    <p>Let's see what this thing can do...</p>
+    @repositionSatellite
+    @engageLightSpeed
+}
+~~~~~~~
 
 
 One important thing to note here is that templates are blocking, so any Futures used need to be completed for the resuly to be used in the template constraints.  As a result, each constraint can take a function that expresses a Long, which is the millisecond value of the timeout.  It defaults to 1000 milliseconds, but you can change this globally by setting the `deadbolt.java.view-timeout` value in your `application.conf`.
@@ -29,15 +32,14 @@ By default, template constraints use the default Deadbolt handler, as obtained v
 Each constraint has an `xOr` variant, which allows you to render content in place of the unauthorized content.  This takes the form `<constraint>Or`, for example `subjectPresentOr`
 
 
-    @subjectPresentOr {
-        <!-- paragraphs will not be rendered, satellites will not be repositioned -->
-        <!-- and light speed will not be engaged if no subject is present -->
-        <p>Let's see what this thing can do...</p>
-        @repositionSatellite
-        @engageLightSpeed
-    } {
-        <marquee>Sorry, you are not authorized to perform clichéd actions from B movies.  Suffer the marquee!</marquee>
-    }
+{title="Providing fallback content when a subject is not present", lang=scala}
+~~~~~~~
+@subjectPresentOr {
+    <button>Log out</button>
+} {
+    <button>Log in</button>
+}
+~~~~~~~
 
 
 In each case, the fallback content is defined as a second `Content` block following the primary body.
@@ -50,11 +52,14 @@ Because templates use blocking calls when rendering, the promises returned from 
 
 If you want to change the default timeout, define `deadbolt.java.view-timeout` in your configuration and give it a millisecond value, e.g.
 
-    deadbolt {
-      java {
-        view-timeout=1500
-      }
-    }
+{title="Define timeouts in milliseconds", lang=javascript}
+~~~~~~~
+deadbolt {
+  java {
+    view-timeout=1500
+  }
+}
+~~~~~~~
 
 ##### Use a supplier to provide a timeout
 
@@ -64,11 +69,14 @@ All Deadbolt templates have a `timeout` parameter which defaults to returning th
 
 That's a good question.  And the answer is - you need to implement `be.objectify.deadbolt.java.TemplateFailureListener` and bind it using a module; see "Expose your DeadboltHandlers with a HandlerCache" section in chapter 4 for more details on this.  If you re-use that chapter 4 module, the binding will look something like this.
 
-    public Seq<Binding<?>> bindings(final Environment environment,
-                                    final Configuration configuration) {
-        return seq(bind(HandlerCache.class).to(MyHandlerCache.class).in(Singleton.class),
-                   bind(TemplateFailureListener.class).to(MyTemplateFailureListener.class).in(Singleton.class));
-    }
+{title="Declaring a template failure listener", lang=scala}
+~~~~~~~
+public Seq<Binding<?>> bindings(final Environment environment,
+                                final Configuration configuration) {
+    return seq(bind(HandlerCache.class).to(MyHandlerCache.class).in(Singleton.class),
+               bind(TemplateFailureListener.class).to(MyTemplateFailureListener.class).in(Singleton.class));
+}
+~~~~~~~
 
 Making it a singleton allows you to keep a running count of the failure level;  if you're using it for other purposes, then scope it accordingly.
 
@@ -92,37 +100,38 @@ Sometimes, you don't need fine-grained checked - you just need to see if there *
 |                         |                        | 1000L                         |                                                  |
 
 
-**Example 1**
+### Examples
 
-The default Deadbolt handler is used to obtain the subject.
+{title="Using the default Deadbolt handler", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.{subjectPresent, subjectPresentOr}
 
+@subjectPresent() {
+   This content will be present if handler#getSubject results in a Some
+}
 
-    @subjectPresent() {
-        This content will be present if handler#getSubject results in a Some
-    }
+@subjectPresentOr() {
+   This content will be present if handler#getSubject results in a Some
+} {
+	fallback content
+}
+~~~~~~~
 
-    @subjectPresentOr() {
-        This content will be present if handler#getSubject results in a Some
-    } {
-    	fallback content
-    }
+{title="Using a specific Deadbolt handler", lang=scala}
+~~~~~~~
+@(handler: be.objectify.deadbolt.java.DeadboltHandler)
+@import be.objectify.deadbolt.java.views.html.{subjectPresent, subjectPresentOr}
 
+@subjectPresent(handler = handler) {
+    This content will be present if handler#getSubject results in a Some
+}
 
-**Example 2**
-
-A specific Deadbolt handler is used to obtain the subject.
-
-
-    @(handler: DeadboltHandler)
-    @subjectPresent(handler = handler) {
-        This content will be present if handler#getSubject results in a Some
-    }
-
-    @subjectPresentOr(handler = handler) {
-        This content will be present if handler#getSubject results in a Some
-    } {
-    	fallback content
-    }
+@subjectPresentOr(handler = handler) {
+    This content will be present if handler#getSubject results in a Some
+} {
+	fallback content
+}
+~~~~~~~
 
 {pagebreak}
 
@@ -144,35 +153,39 @@ Sometimes, you don't need fine-grained checked - you just need to see if there *
 |                         |                        | 1000L                         |                                                  |
 
 
-**Example 1**
+### Examples
 
-The default Deadbolt handler is used to obtain the subject.
+{title="Using the default Deadbolt handler", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.{subjectNotPresent, subjectNotPresentOr}
 
-    @subjectNotPresent() {
-        This content will be present if handler#getSubject results in a None
-    }
+@subjectNotPresent() {
+    This content will be present if handler#getSubject results in a None
+}
 
-    @subjectNotPresentOr() {
-        This content will be present if handler#getSubject results in a None
-    } {
-    	fallback content
-    }
+@subjectNotPresentOr() {
+    This content will be present if handler#getSubject results in a None
+} {
+	fallback content
+}
+~~~~~~~
 
 
-**Example 2**
+{title="Using a specific Deadbolt handler", lang=scala}
+~~~~~~~
+@(handler: be.objectify.deadbolt.java.DeadboltHandler)
+@import be.objectify.deadbolt.java.views.html.{subjectNotPresent, subjectNotPresentOr}
 
-A specific Deadbolt handler is used to obtain the subject.
+@subjectNotPresent(handler = handler) {
+    This content will be present if handler#getSubject results in a None
+}
 
-    @(handler: DeadboltHandler)
-    @subjectNotPresent(handler = handler) {
-        This content will be present if handler#getSubject results in a None
-    }
-
-    @subjectNotPresentOr(handler = handler) {
-        This content will be present if handler#getSubject results in a None
-    } {
-    	fallback content
-    }
+@subjectNotPresentOr(handler = handler) {
+    This content will be present if handler#getSubject results in a None
+} {
+	fallback content
+}
+~~~~~~~
 
 {pagebreak}
 
@@ -205,56 +218,57 @@ AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is 
 |                         |                        | 1000L                         |                                                  |
 
 
-**Example 1**
+{title="The subject is obtained from the default handler, and must have the foo role", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.restrict
 
-The subject is obtained from the default handler, and must have the foo role.
-
-
-    @restrict(roles = la(as("foo"))) {
-        Subject requires the foo role for this to be visible
-    }
-
-
-**Example 2**
-
-The subject is obtained from the default handler, and must have the foo AND bar role.
+@restrict(roles = la(as("foo"))) {
+    Subject requires the foo role for this to be visible
+}
+~~~~~~~
 
 
-    @restrict(roles = la(as("foo", "bar")) {
-         Subject requires the foo AND bar roles for this to be visible
-    }
+{title="The subject is obtained from the default handler, and must have the foo AND bar role", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.restrict
+
+@restrict(roles = la(as("foo", "bar")) {
+     Subject requires the foo AND bar roles for this to be visible
+}
+~~~~~~~
 
 
-**Example 3**
+{title="The subject is obtained from the default handler, and must have the foo OR bar role", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.restrict
 
-The subject is obtained from the default handler, and must have the foo OR bar role.
-
-
-    @restrict(roles = la(as("foo"), as("bar"))) {
-         Subject requires the foo OR bar role for this to be visible
-    }
-
-
-**Example 4**
-
-The subject is obtained from the default handler, and must have the foo AND bar role; otherwise, fallback content will be rendered.
+@restrict(roles = la(as("foo"), as("bar"))) {
+     Subject requires the foo OR bar role for this to be visible
+}
+~~~~~~~
 
 
-    @restrictOr(roles = la(as("foo", "bar"))) {
-         Subject requires the foo AND bar roles for this to be visible
-    } {
-    	Subject does not have the necessary roles
-    }
+{title="Providing fallback content", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.restrictOr
+
+@restrictOr(roles = la(as("foo", "bar"))) {
+     Subject requires the foo AND bar roles for this to be visible
+} {
+	Subject does not have the necessary roles
+}
+~~~~~~~
 
 
-**Example 5**
+{title="Getting the subject via a specific Deadbolt handler", lang=scala}
+~~~~~~~
+@(handler: be.objectify.deadbolt.java.DeadboltHandler)
+@import be.objectify.deadbolt.java.views.html.restrict
 
-The subject is obtained from a specific handler, and must have the foo OR bar role.
-
-    @(handler: DeadboltHandler)
-    @restrict(roles = la(as("foo"), as("bar")), handler = handler) {
-         Subject requires the foo OR bar role for this to be visible
-    }
+@restrict(roles = la(as("foo"), as("bar")), handler = handler) {
+     Subject requires the foo OR bar role for this to be visible
+}
+~~~~~~~
 
 {pagebreak}
 
@@ -284,43 +298,70 @@ Use the `Subject`s `Permission`s to perform a variety of checks.
 
 **Example 1**
 
-The subject and `DynamicResourceHandler` are obtained from the default handler, and must have a permission with the exact value "admin.printer".
+The subject and `DynamicResourceHandler` are obtained from the default handler, and .
+
+{title="The subject must have a permission with the exact value 'admin.printer'", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.pattern
+
+@pattern(value = "admin.printer") {
+    Subject must have a permission with the exact value "admin.printer" for this to be visible
+}
+~~~~~~~
 
 
-    @pattern(value = "admin.printer") {
-        Subject must have a permission with the exact value "admin.printer" for this to be visible
-    }
+{title="The subject must have a permission that matches the specified regular expression", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.pattern
+
+@pattern(value = "(.)*\.printer", patternType = PatternType.REGEX) {
+	Subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" for this to be visible
+}
+~~~~~~~
 
 
-**Example 2**
+{title="A custom test is applied to determine access", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.pattern
 
-The subject and `DynamicResourceHandler` are obtained from the default handler, and must have a permission that matches the specified regular expression.
-
-
-    @pattern(value = "(.)*\.printer", patternType = PatternType.REGEX) {
-    	Subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" for this to be visible
-    }
-
-
-**Example 3**
-
-The `DynamicResourceHandler` is obtained from the default handler and used to apply the custom test
+@pattern(value = "something arbitrary", patternType = PatternType.CUSTOM) {
+	DynamicResourceHandler#checkPermission must result in true for this to be visible
+}
+~~~~~~~
 
 
-    @pattern(value = "something arbitrary", patternType = PatternType.CUSTOM) {
-    	DynamicResourceHandler#checkPermission must result in true for this to be visible
-    }
+{title="Providing fallback content", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.patternOr
+
+@patternOr(value = "something arbitrary", patternType = PatternType.CUSTOM) {
+    DynamicResourceHandler#checkPermission must result in true for this to be visible
+} {
+    Tough luck
+}
+~~~~~~~
 
 
-**Example 4**
+{title="Using a specific Deadbolt handler", lang=scala}
+~~~~~~~
+@(handler: be.objectify.deadbolt.java.DeadboltHandler)
+@import be.objectify.deadbolt.java.views.html.pattern
 
-The subject and `DynamicResourceHandler` are obtained from a specific handler, and must have a permission that matches the specified regular expression.
+@pattern(handler = handler, value = "(.)*\.printer", patternType = PatternType.REGEX) {
+	Subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" for this to be visible
+}
+~~~~~~~
 
 
-    @(handler: DeadboltHandler)
-    @pattern(handler = handler, value = "(.)*\.printer", patternType = PatternType.REGEX) {
-    	Subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer" for this to be visible
-    }
+{title="Inverting the constraint", lang=scala}
+~~~~~~~
+@(handler: be.objectify.deadbolt.java.DeadboltHandler)
+@import be.objectify.deadbolt.java.views.html.pattern
+
+@pattern(value = "(.)*\.printer", patternType = PatternType.REGEX) {
+    Subject must have no permissions that end with '.printer'
+}
+~~~~~~~
 
 {pagebreak}
 
@@ -348,43 +389,57 @@ The most flexible constraint - this is a completely user-defined constraint that
 |                         |                        | 1000L                         |                                                  |
 
 
-**Example 1**
+{title="The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.dynamic
 
-The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content.
-
-
-    @dynamic(name = "someName") {
-        DynamicResourceHandler#isAllowed must result in true for this to be visible
-    }
-
-
-**Example 2**
-
-The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content with some hard-coded meta data.
+@dynamic(name = "someName") {
+    DynamicResourceHandler#isAllowed must result in true for this to be visible
+}
+~~~~~~~
 
 
-    @dynamic(name = "someName", meta = "foo") {
-        DynamicResourceHandler#isAllowed must result in true for this to be visible
-    }
+{title="Providing meta data to the constraint", lang=scala}
+~~~~~~~
+@import be.objectify.deadbolt.java.views.html.dynamic
 
-
-**Example 3**
+@dynamic(name = "someName", meta = "foo") {
+    DynamicResourceHandler#isAllowed must result in true for this to be visible
+}
+~~~~~~~
 
 The `DynamicResourceHandler` is obtained from the default handler and is used to apply a named constraint to the content with some dynamically-defined meta data.
 
+{title="Meta data does not have to be hard-coded", lang=scala}
+~~~~~~~
+@(someMetaValue: String)
+@import be.objectify.deadbolt.java.views.html.dynamic
 
-    @(someMetaValue: String)
-    @dynamic(name = "someName", meta = someMetaValue) {
-        DynamicResourceHandler#isAllowed must result in true for this to be visible
-    }
+@dynamic(name = "someName", meta = someMetaValue) {
+    DynamicResourceHandler#isAllowed must result in true for this to be visible
+}
+~~~~~~~
 
 
-**Example 4**
+{title="Providing fallback content", lang=scala}
+~~~~~~~
+@(handler: be.objectify.deadbolt.java.DeadboltHandler)
+@import be.objectify.deadbolt.java.views.html.dynamicOr
 
-The `DynamicResourceHandler` is obtained from a specific handler and is used to apply a named constraint.
+@dynamicOr(handler = handler, name = "someName") {
+    DynamicResourceHandler#isAllowed must result in true for this to be visible
+} {
+    Better luck next time
+}
+~~~~~~~
 
 
-    @(handler: DeadboltHandler)
-    @dynamic(handler = handler, name = "someName") {
-        DynamicResourceHandler#isAllowed must result in true for this to be visible
-    }
+{title="Using a specific Deadbolt handler", lang=scala}
+~~~~~~~
+@(handler: be.objectify.deadbolt.java.DeadboltHandler)
+@import be.objectify.deadbolt.java.views.html.dynamic
+
+@dynamic(handler = handler, name = "someName") {
+    DynamicResourceHandler#isAllowed must result in true for this to be visible
+}
+~~~~~~~
