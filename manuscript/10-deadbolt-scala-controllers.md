@@ -174,7 +174,7 @@ It's possible to invert the constraint by setting the `invert` parameter to true
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
 | value                   | String                 |                               | The value of the permission.                     |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
-| patternType             | PatternType            |                               | One of EQUALITY, REGEX or CUSTOM.                |
+| patternType             | PatternType            | PatternType.EQUALITY          | One of EQUALITY, REGEX or CUSTOM.                |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
 | invert                  | Boolean                | false                         | Invert the result of the test                    |
 
@@ -217,7 +217,7 @@ def permittedFunctionB = actionBuilders.PatternAction(value = "(.)*\.printer",
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
 | value                   | String                 |                               | The value of the permission.                     |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
-| patternType             | PatternType            |                               | One of EQUALITY, REGEX or CUSTOM.                |
+| patternType             | PatternType            | PatternType.EQUALITY          | One of EQUALITY, REGEX or CUSTOM.                |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
 | handler                 | DeadboltHandler        | HandlerCache.apply()          | The DeadboltHandler instance to use.             |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
