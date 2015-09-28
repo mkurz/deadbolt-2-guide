@@ -8,3 +8,4 @@
 08-deadbolt-scala-hooks.md
 09-deadbolt-scala-templates.md
 10-deadbolt-scala-controllers.md
+11-integration-with-play-authenticate.md
