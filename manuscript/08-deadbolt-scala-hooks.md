@@ -99,11 +99,14 @@ Instead, dependencies are handled using a custom `ApplicationLoader`.  To make t
 {title="An example ApplicationLoader for compile-time DI", lang=scala}
 ~~~~~~~
 class CompileTimeDiApplicationLoader extends ApplicationLoader  {
-  override def load(context: Context): Application = new ApplicationComponents(context).application
+  override def load(context: Context): Application 
+             = new ApplicationComponents(context).application
 }
 
-class ApplicationComponents(context: Context) extends BuiltInComponentsFromContext(context) with DeadboltComponents 
-                                                                                            with EhCacheComponents {
+class ApplicationComponents(context: Context) 
+                            extends BuiltInComponentsFromContext(context) 
+                            with DeadboltComponents
+                            with EhCacheComponents {
 
   // Define a pattern cache implementation
   // defaultCacheApi is a component from EhCacheComponents
@@ -123,19 +126,19 @@ class ApplicationComponents(context: Context) extends BuiltInComponentsFromConte
 
 The components provided by Deadbolt are
 
-* scalaAnalyzer - constraint logic
-* deadboltActions - for composing actions
-* actionBuilders - for building actions
-* viewSupport - for template constraints
-* patternCache - for caching regular expressions.  You need to define this yourself in the application loader, but as in the example above it's easy to use the default implementation
-* handlers - the implementation of `HandlerCache` that you provide
-* configuration - the application configuration
-* ecContextProvider - the execution context for concurrent operations.  Defaults to `scala.concurrent.ExecutionContext.global`
-* templateFailureListenerProvider - for listening to Deadbolt-related errors that occur when rendering templates.  Defaults to a no-operation implementation
+* `scalaAnalyzer` - constraint logic
+* `deadboltActions` - for composing actions
+* `actionBuilders` - for building actions
+* `viewSupport` - for template constraints
+* `patternCache` - for caching regular expressions.  You need to define this yourself in the application loader, but as in the example above it's easy to use the default implementation
+* `handlers` - the implementation of `HandlerCache` that you provide
+* `configuration` - the application configuration
+* `ecContextProvider` - the execution context for concurrent operations.  Defaults to `scala.concurrent.ExecutionContext.global`
+* `templateFailureListenerProvider` - for listening to Deadbolt-related errors that occur when rendering templates.  Defaults to a no-operation implementation
 
 Once you've defined your `ApplicationLoader`, you need to add it to your `application.conf`.
 
-{title="An example ApplicationLoader for compile-time DI", lang=scala}
+{title="Enable your ApplicationLoader", lang=javascript}
 ~~~~~~~
 play {
   application {
