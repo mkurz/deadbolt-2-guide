@@ -50,7 +50,7 @@ The second is that by writing the Scala section last, I have a chance to increas
 The examples in this book are for Play 2.4, and use the following versions of Deadbolt
 
 - `"be.objectify" %% "deadbolt-java" % "2.4.3"`
-- `"be.objectify" %% "deadbolt-scala" % "2.4.1.1"`
+- `"be.objectify" %% "deadbolt-scala" % "2.4.2"`
 
 ## Target audience
 
