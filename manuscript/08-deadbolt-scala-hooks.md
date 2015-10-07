@@ -138,7 +138,7 @@ The components provided by Deadbolt are
 
 Once you've defined your `ApplicationLoader`, you need to add it to your `application.conf`.
 
-{title="An example ApplicationLoader for compile-time DI", lang=javascript}
+{title="Specify the application loader to use", lang=javascript}
 ~~~~~~~
 play {
   application {
