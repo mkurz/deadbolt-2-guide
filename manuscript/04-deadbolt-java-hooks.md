@@ -1,4 +1,4 @@
-# Using Deadbolt 2 with Play 2 Java projects
+-# Using Deadbolt 2 with Play 2 Java projects
 
 Deadbolt 2 for Java provides an idiomatic API for dealing with Java controllers and templates rendered from Java controllers in Play applications.  It takes advantage of the features such as access to the HTTP context - vital, of course, for a framework that says it embraces HTTP - to give access to the current request and session, and the annotation-driven interceptor support.
 
