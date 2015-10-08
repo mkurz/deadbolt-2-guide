@@ -1,4 +1,4 @@
-# Using Deadbolt 2 with Play 2 Scala projects
+-# Using Deadbolt 2 with Play 2 Scala projects
 
 Deadbolt for Scala provides an idiomatic API for dealing with Scala controllers and templates rendered from Scala controllers in Play applications.
 
