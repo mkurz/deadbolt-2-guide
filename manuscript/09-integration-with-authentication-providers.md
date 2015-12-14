@@ -9,6 +9,13 @@ Imagine an application where you can post short messages and read the messages o
 ~~~~~~~
 package be.objectify.messages;
 
+import javax.inject.Inject;
+import play.libs.F;
+import play.libs.Json;
+import play.mvc.Controller;
+import play.mvc.Result;
+import be.objectify.deadbolt.java.actions.SubjectPresent;
+
 public class Messages extends Controller {
 
     private final MessageDao messageDao;
@@ -34,7 +41,7 @@ public class Messages extends Controller {
     @SubjectPresent
     public F.Promise<Result> createMessage() {
     	return F.Promise.promise(() -> body.asJson())
-    	                .map(json -> Json.bind(Message.class, json))
+    	                .map(json -> Json.fromJson(json, Message.class))
     	                .map(messageDao::save)
     	                .map(Results::ok);
     }
