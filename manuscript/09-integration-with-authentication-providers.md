@@ -61,7 +61,7 @@ We can consider the `onAccessFailure` method to be the Deadbolt equivalent of a 
 ~~~~~~~
 public F.Promise<Result> onAccessFailure(final Http.Context context,
                                          final String content) {
-    return F.Promise.promise(Results::unauthorized);
+    return F.Promise.promise(Results::forbidden);
 }
 ~~~~~~~
 
@@ -82,7 +82,7 @@ The logic here is simple - if a user is present, no action is required otherwise
 {title="Requiring a subject", lang=java}
 ~~~~~~~
 public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
-    return getSubject().map(subject -> subject.map(Optional::empty).orElseGet(() -> Optional.of(Results::unauthenticated)));
+    return getSubject().map(subject -> subject.map(Optional::empty).orElseGet(() -> Optional.of(Results::unauthorized)));
 }
 ~~~~~~~
 
