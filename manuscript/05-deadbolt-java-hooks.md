@@ -24,7 +24,7 @@ To get the current subject, the `F.Promise<Optional<Subject>> getSubject(Http.Co
 
 
 ### Dealing with authorization failure
-When authorization fails, the `Result onAccessFailure(Http.Context context, String content)` method is used to obtain a result for the HTTP response.  The result required from the `F.Promise` returned from this method is a regular `play.mvc.Result`, so it can be anything you chose.  You might want to return a 403 forbidden, redirect to a location accessible to everyone, etc.
+When authorization fails, the `F.Promise<Result> onAccessFailure(Http.Context context, String content)` method is used to obtain a result for the HTTP response.  The result required from the `F.Promise` returned from this method is a regular `play.mvc.Result`, so it can be anything you chose.  You might want to return a 403 forbidden, redirect to a location accessible to everyone, etc.
 
 
 ### Dealing with dynamic constraints
