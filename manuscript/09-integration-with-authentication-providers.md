@@ -1,4 +1,4 @@
--# Integrating with authentication providers
+# Integrating with authentication providers
 
 Authorization is all well and good, but some constraints are pointless if the user is not known to the application.  You could write a `Dynamic` constraint that only allows access on Thursdays - this doesn't need to know anything about even the concept of a user; a `Restrict` constraint, on the other hand, uses `Roles` obtained from a `Subject`.  The question is, what is a subject and how do we who it is?
   
