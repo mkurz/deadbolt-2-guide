@@ -6,9 +6,8 @@
 06-deadbolt-java-controllers.md
 07-deadbolt-java-templates.md
 08-dynamic-rules.md
-09-deadbolt-for-scala.md
-10-deadbolt-scala-hooks.md
-11-deadbolt-scala-controllers.md
-12-deadbolt-scala-templates.md
-13-integration-with-authentication-providers.md
-14-integration-with-play-authenticate.md
+09-integration-with-authentication-providers.md
+10-deadbolt-for-scala.md
+11-deadbolt-scala-hooks.md
+12-deadbolt-scala-controllers.md
+13-deadbolt-scala-templates.md
