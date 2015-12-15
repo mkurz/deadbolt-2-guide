@@ -1,8 +1,8 @@
 # Integrating with authentication providers
 
-Authorization is all well and good, but some constraints are pointless if the user is not known to the application.  You could write a `Dynamic` constraint that only allows access on Thursdays - this doesn't need to know anything about even the concept of a user; a `Restrict` constraint, on the other hand, uses `Roles` obtained from a `Subject`.  The question is, what is a subject and how do we who it is?
+Authorization is all well and good, but some constraints are pointless if the user is not known to the application.  You could write a `Dynamic` constraint that only allows access on Thursdays - this doesn't need to know anything about even the concept of a user; a `Restrict` constraint, on the other hand, uses `Roles` obtained from a `Subject`.  The question is, what is a subject and how do we know who it is?
   
-Imagine an application where you can post short messages and read the messages of others, something along the lines of Twitter.  By default, you can read any message on the system unless the user has marked that message as private - these private messages require you to be logged in to view them.  In order to write a message, you have to have an account and be logged in.  We can sketch out a controller for this very simple application thus:
+Imagine an application where you can post short messages and read the messages of others, something along the lines of Twitter.  By default, you can read any message on the system unless the user has marked that message as restricted to only users who are logged into the application..  In order to write a message, you have to have an account and be logged in.  We can sketch out a controller for this very simple application thus:
 
 
 {title="An application with Deadbolt constraints", lang=java}
@@ -59,9 +59,11 @@ POST   /create            be.objectify.messages.Messages.createMessage()
 
 An authenticated user can access all three of these routes and obtain a successful result.  An unauthenticated user would hit a brick wall when accessing `/messages` or `/create` - specifically, they would run into whatever behaviour was specified in the `onAccessFailure` method of the current `DeadboltHandler`.
 
-This is a good time to review the difference between the HTTP status codes `401 Unauthorized` and `403 Forbidden`.  A 401 means you don't have access *at the moment*, but try again after authenticating.   A 403 means the subject cannot access the resource with their current authorization rights, and re-authenticating will not solve the problem.  A well-behaved application should respect the difference between the two.
+This is a good time to review the difference between the HTTP status codes `401 Unauthorized` and `403 Forbidden`.  A 401 means you don't have access *at the moment*, but you should try again after authenticating.   A 403 means the subject cannot access the resource with their current authorization rights, and re-authenticating will not solve the problem - in fact, the specification explicitly states that you shouldn't even attempt to re-authenticate[^403behaviour].  A well-behaved application should respect the difference between the two.
 
-We can consider the `onAccessFailure` method to be the Deadbolt equivalent of a 403.  For a `DeadboltHandler` used by a RESTful controller, the status code should be enough to indicate the problem.  If you have an application that uses server-side rendering, you may well want to return content in the body of the response.  The end result is the same though - You Can't Do That.  Note the return type - the `Promise` contains a `Result` - access has very definitely failed at this point, and it needs to be dealt with.
+[^403behaviour]: I would love to know if the HTTP specification authors expect regular users to be aware of this behaviour.
+
+We can consider the `onAccessFailure` method to be the Deadbolt equivalent of a 403.  For a `DeadboltHandler` used by a RESTful controller, the status code should be enough to indicate the problem.  If you have an application that uses server-side rendering, you may well want to return content in the body of the response.  The end result is the same though - You Can't Do That.  Note the return type, a `Promise` containing a `Result` and not an `Optional<Result>` - access has very definitely failed at this point, and it needs to be dealt with.
 
 
 {title="Handling access failure", lang=java}
@@ -89,8 +91,9 @@ The logic here is simple - if a user is present, no action is required otherwise
 {title="Requiring a subject", lang=java}
 ~~~~~~~
 public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
-    return getSubject(context).map(maybeSubject -> maybeSubject.map(subject -> Optional.<Result>empty())
-                                                               .orElseGet(() -> Optional.of(Results.unauthorized())));
+    return getSubject(context).map(maybeSubject -> 
+        maybeSubject.map(subject -> Optional.<Result>empty())
+                    .orElseGet(() -> Optional.of(Results.unauthorized())));
 }
 ~~~~~~~
 
@@ -179,15 +182,17 @@ public class MyDeadboltHandler extends AbstractDeadboltHandler {
 
     @Override
     public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
-        return getSubject(context).map(maybeSubject -> maybeSubject.map(subject -> Optional.<Result>empty())
-                                                                   .orElseGet(() -> Optional.of(Results.unauthorized())));
+        return getSubject(context).map(maybeSubject -> 
+            maybeSubject.map(subject -> Optional.<Result>empty())
+                        .orElseGet(() -> Optional.of(Results.unauthorized())));
     }
 
     @Override
     public F.Promise<Optional<Subject>> getSubject(final Http.Context context) {
-        return F.Promise.promise(() -> Optional.ofNullable(authenticator.getUsername(context))
-                                               .flatMap(userDao::findByUserName)
-                                               .map(user -> user));
+        return F.Promise.promise(() -> 
+            Optional.ofNullable(authenticator.getUsername(context))
+                    .flatMap(userDao::findByUserName)
+                    .map(user -> user));
     }
 
     @Override
@@ -225,11 +230,13 @@ public class MyDeadboltHandler extends AbstractDeadboltHandler {
 
     @Override
     public F.Promise<Optional<Subject>> getSubject(final Http.Context context) {
-        return F.Promise.promise(() -> (User)context.args.computeIfAbsent("user",
-                                                                          key -> {
-                                                                              final String userName = authenticator.getUsername(context);
-                                                                              return userDao.findByUserName(userName);
-                                                                          })).map(Optional::ofNullable);
+        return F.Promise.promise(() -> 
+            (User)context.args.computeIfAbsent(
+                "user",
+                key -> {
+                    final String userName = authenticator.getUsername(context);
+                    return userDao.findByUserName(userName);
+                })).map(Optional::ofNullable);
     }
 }
 ~~~~~~~
