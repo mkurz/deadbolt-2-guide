@@ -22,7 +22,7 @@ public class Messages extends Controller {
 
     @Inject
     public MessagesController(final MessageDao messageDao) {
-    	this.messageDao = messageDao;
+        this.messageDao = messageDao;
     }
 
     public F.Promise<Result> getPublicMessages() {
@@ -40,10 +40,10 @@ public class Messages extends Controller {
 
     @SubjectPresent
     public F.Promise<Result> createMessage() {
-    	return F.Promise.promise(() -> body.asJson())
-    	                .map(json -> Json.fromJson(json, Message.class))
-    	                .map(messageDao::save)
-    	                .map(Results::ok);
+        return F.Promise.promise(() -> body.asJson())
+                        .map(json -> Json.fromJson(json, Message.class))
+                        .map(messageDao::save)
+                        .map(Results::ok);
     }
 }
 ~~~~~~~
@@ -73,7 +73,7 @@ public F.Promise<Result> onAccessFailure(final Http.Context context,
 ~~~~~~~
 
 
-To manage the 401 use-case, we use the `beforeAuthCheck` method.  Unlike `onAccessFailure`, this method allows for the possibility that everything is fine.  It's perfectly reasonable to return an empty option from this method.
+To manage the 401 use-case, we use the `beforeAuthCheck` method.  Unlike `onAccessFailure`, this method allows for the possibility that everything is fine.  It's perfectly reasonable to return an empty option from this method, indicating that no action should be taken and the request should continue unimpeded.
 
 {title="Doing nothing before a constraint is applied", lang=java}
 ~~~~~~~
@@ -89,8 +89,147 @@ The logic here is simple - if a user is present, no action is required otherwise
 {title="Requiring a subject", lang=java}
 ~~~~~~~
 public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
-    return getSubject().map(subject -> subject.map(Optional::empty).orElseGet(() -> Optional.of(Results::unauthorized)));
+    return getSubject(context).map(maybeSubject -> maybeSubject.map(subject -> Optional.<Result>empty())
+                                                               .orElseGet(() -> Optional.of(Results.unauthorized())));
 }
 ~~~~~~~
 
-When we look at specific authenication providers, we will focus on the `beforeAuthCheck` as the integration 
+When we look at specific authenication providers, we will focus on the `beforeAuthCheck` as the integration.
+
+
+## Play's built-in authentication support
+
+Play ships with a very simple interceptor that requires an authenticated user to be present; there's no concept of authorization.  It uses an annotation-driven approach similar to that of Deadbolt, allowing you to annotate either entire controllers at the class level, or individual methods within a controller.
+
+{title="Using Play's authentication support", lang=java}
+~~~~~~~
+@Security.Authenticated
+public F.Promise<Result> getAllMessages() {
+    return F.Promise.promise(messageDao::getAll)
+                    .map(Json::toJson)
+                    .map(Results::ok);
+}
+~~~~~~~
+
+By default, the `Security.Authenticated` annotation will trigger an interceptor that uses `Security.Authenticator` to look in the session for a value mapped to `"username"` - if the value is non-null, the user is considered to be authenticated.  If you want to customise how the user identification string is obtained, you can extend and customise as necessary.
+
+{title="Customing Play's authentication support", lang=java}
+~~~~~~~
+package be.objectify.messages.security;
+
+import java.util.Optional;
+import javax.inject.Inject;
+import be.objectify.messages.dao.UserDao;
+import be.objectify.messages.models.User;
+import play.mvc.Http;
+import play.mvc.Security;
+
+public class AuthenticationSupport extends Security.Authenticator {
+
+    private final UserDao userDao;
+
+    @Inject
+    public AuthenticationSupport(final UserDao userDao) {
+        this.userDao = userDao;
+    }
+    
+    @Override
+    public String getUsername(final Http.Context context) {
+        return getTokenFromHeader(context).flatMap(userDao::findByToken)
+                                          .map(User::getIdentifier)
+                                          .orElse(null);
+    }
+
+    private Optional<String> getTokenFromHeader(final Http.Context context) {
+        return Optional.ofNullable(context.request().headers().get("X-AUTH-TOKEN"))
+                       .filter(arr -> arr.length == 1)
+                       .filter(arr -> arr[0] != null)
+                       .map(arr -> arr[0]);
+    }
+}
+~~~~~~~
+
+The class of this customised implementation can then be passed to the annotation with `@Security.Authenticated(AuthenticationSupport.class)`.  However, all mention of Deadbolt's constraints have vanished and so we've replaced a fine-grained authorization system with a coarse-grained authentication-only system.  To fix this, we need to revert back to using Deadbolt in the controller and move `AuthenticationSupport` (or even the basic `Security.Authenticator`) integration into the `DeadboltHandler`.
+
+{title="Integrating Play's authentication with Deadbolt", lang=java}
+~~~~~~~
+package be.objectify.messages.security;
+
+import java.util.Optional;
+import javax.inject.Inject;
+import be.objectify.deadbolt.core.models.Subject;
+import be.objectify.deadbolt.java.AbstractDeadboltHandler;
+import be.objectify.messages.dao.UserDao;
+import play.libs.F;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Results;
+
+public class MyDeadboltHandler extends AbstractDeadboltHandler {
+
+    private final AuthenticationSupport authenticator;
+    private final UserDao userDao;
+
+    @Inject
+    public MyDeadboltHandler(final AuthenticationSupport authenticator,
+                             final UserDao userDao) {
+        this.authenticator = authenticator;
+        this.userDao = userDao;
+    }
+
+    @Override
+    public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
+        return getSubject(context).map(maybeSubject -> maybeSubject.map(subject -> Optional.<Result>empty())
+                                                                   .orElseGet(() -> Optional.of(Results.unauthorized())));
+    }
+
+    @Override
+    public F.Promise<Optional<Subject>> getSubject(final Http.Context context) {
+        return F.Promise.promise(() -> Optional.ofNullable(authenticator.getUsername(context))
+                                               .flatMap(userDao::findByUserName)
+                                               .map(user -> user));
+    }
+
+    @Override
+    public F.Promise<Result> onAuthFailure(final Http.Context context,
+                                           final String content) {
+        // you could also use the behaviour of the authenticator, e.g.
+        // return F.Promise.promise(() -> authenticator.onUnauthorized(context));
+        return F.Promise.promise(() -> unauthorized("You can't do that"));
+    }
+}
+~~~~~~~
+
+There are three things going on here, only one of which is explicitly tied into the authentication system, and that is `getSubject`.  Of the other two methods, `onAuthFailure` gives an arbitrary (but hopefully meaningful) response and `beforeAuthCheck` is essentially generic code.  There is scope here for performance improvements and will depend on your specific implementations; for example, the user retrieved from the database by the authenticator can be stored in `context.args` for re-use by the Deadbolt handler.
+
+{title="Per-request caching of the user", lang=java}
+~~~~~~~
+public class AuthenticationSupport extends Security.Authenticator {
+
+    // other methods
+
+    @Override
+    public String getUsername(final Http.Context context) {
+        return getTokenFromHeader(context).flatMap(userDao::findByToken)
+                                          .map(user -> {
+                                              context.args.put("user", user);
+                                              return user.getIdentifier();
+                                          })
+                                          .orElse(null);
+    }
+}
+
+public class MyDeadboltHandler extends AbstractDeadboltHandler {
+
+    // other methods
+
+    @Override
+    public F.Promise<Optional<Subject>> getSubject(final Http.Context context) {
+        return F.Promise.promise(() -> (User)context.args.computeIfAbsent("user",
+                                                                          key -> {
+                                                                              final String userName = authenticator.getUsername(context);
+                                                                              return userDao.findByUserName(userName);
+                                                                          })).map(Optional::ofNullable);
+    }
+}
+~~~~~~~
