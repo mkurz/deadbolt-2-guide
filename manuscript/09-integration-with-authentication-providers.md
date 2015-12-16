@@ -59,9 +59,7 @@ POST   /create            be.objectify.messages.Messages.createMessage()
 
 An authenticated user can access all three of these routes and obtain a successful result.  An unauthenticated user would hit a brick wall when accessing `/messages` or `/create` - specifically, they would run into whatever behaviour was specified in the `onAccessFailure` method of the current `DeadboltHandler`.
 
-This is a good time to review the difference between the HTTP status codes `401 Unauthorized` and `403 Forbidden`.  A 401 means you don't have access *at the moment*, but you should try again after authenticating.   A 403 means the subject cannot access the resource with their current authorization rights, and re-authenticating will not solve the problem - in fact, the specification explicitly states that you shouldn't even attempt to re-authenticate[^403behaviour].  A well-behaved application should respect the difference between the two.
-
-[^403behaviour]: I would love to know if the HTTP specification authors expect regular users to be aware of this behaviour.
+This is a good time to review the difference between the HTTP status codes `401 Unauthorized` and `403 Forbidden`.  A 401 means you don't have access *at the moment*, but you should try again after authenticating.   A 403 means the subject cannot access the resource with their current authorization rights, and re-authenticating will not solve the problem - in fact, the specification explicitly states that you shouldn't even attempt to re-authenticate.  A well-behaved application should respect the difference between the two.
 
 We can consider the `onAccessFailure` method to be the Deadbolt equivalent of a 403.  For a `DeadboltHandler` used by a RESTful controller, the status code should be enough to indicate the problem.  If you have an application that uses server-side rendering, you may well want to return content in the body of the response.  The end result is the same though - You Can't Do That.  Note the return type, a `Promise` containing a `Result` and not an `Optional<Result>` - access has very definitely failed at this point, and it needs to be dealt with.
 
