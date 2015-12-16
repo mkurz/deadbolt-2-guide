@@ -215,12 +215,11 @@ public class AuthenticationSupport extends Security.Authenticator {
 
     @Override
     public String getUsername(final Http.Context context) {
-        return getTokenFromHeader(context).flatMap(userDao::findByToken)
-                                          .map(user -> {
-                                              context.args.put("user", user);
-                                              return user.getIdentifier();
-                                          })
-                                          .orElse(null);
+        final Optional<User> maybeUser = getTokenFromHeader(context).flatMap(userDao::findByToken);
+        return maybeUser.map(user -> {
+            context.args.put("user", maybeUser);
+            return user.getIdentifier();
+        }).orElse(null);
     }
 }
 
@@ -230,13 +229,12 @@ public class MyDeadboltHandler extends AbstractDeadboltHandler {
 
     @Override
     public F.Promise<Optional<Subject>> getSubject(final Http.Context context) {
-        return F.Promise.promise(() -> 
-            (User)context.args.computeIfAbsent(
+        return F.Promise.promise(() -> (Optional<Subject>)context.args.computeIfAbsent(
                 "user",
                 key -> {
                     final String userName = authenticator.getUsername(context);
                     return userDao.findByUserName(userName);
-                })).map(Optional::ofNullable);
+                }));
     }
 }
 ~~~~~~~
