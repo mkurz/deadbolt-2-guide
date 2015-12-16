@@ -5,7 +5,7 @@ Authorization is all well and good, but some constraints are pointless if the us
 Imagine an application where you can post short messages and read the messages of others, something along the lines of Twitter.  By default, you can read any message on the system unless the user has marked that message as restricted to only users who are logged into the application..  In order to write a message, you have to have an account and be logged in.  We can sketch out a controller for this very simple application thus:
 
 
-{title="An application with Deadbolt constraints", lang=java}
+{title="A controller with Deadbolt constraints", lang=java}
 ~~~~~~~
 package be.objectify.messages;
 
@@ -97,7 +97,7 @@ public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
 }
 ~~~~~~~
 
-When we look at specific authenication providers, we will focus on the `beforeAuthCheck` as the integration.
+When we look at specific authenication providers, we will focus on the `beforeAuthCheck` as the integration.  It will become very clear, very quickly, the same approach is used for all authentication systems; this means that swapping out authentication without affecting authorization is both possible and trivial.
 
 
 ## Play's built-in authentication support
@@ -114,9 +114,9 @@ public F.Promise<Result> getAllMessages() {
 }
 ~~~~~~~
 
-By default, the `Security.Authenticated` annotation will trigger an interceptor that uses `Security.Authenticator` to look in the session for a value mapped to `"username"` - if the value is non-null, the user is considered to be authenticated.  If you want to customise how the user identification string is obtained, you can extend and customise as necessary.
+By default, the `Security.Authenticated` annotation will trigger an interceptor that uses `Security.Authenticator` to look in the session for a value mapped to `"username"` - if the value is non-null, the user is considered to be authenticated.  If you want to customize how the user identification string is obtained, you can extend `Security.Authenticator` implement your own solution.
 
-{title="Customing Play's authentication support", lang=java}
+{title="Customizing Play's authentication support", lang=java}
 ~~~~~~~
 package be.objectify.messages.security;
 
@@ -152,7 +152,7 @@ public class AuthenticationSupport extends Security.Authenticator {
 }
 ~~~~~~~
 
-The class of this customised implementation can then be passed to the annotation with `@Security.Authenticated(AuthenticationSupport.class)`.  However, all mention of Deadbolt's constraints have vanished and so we've replaced a fine-grained authorization system with a coarse-grained authentication-only system.  To fix this, we need to revert back to using Deadbolt in the controller and move `AuthenticationSupport` (or even the basic `Security.Authenticator`) integration into the `DeadboltHandler`.
+The class of this customized implementation can then be passed to the annotation with `@Security.Authenticated(AuthenticationSupport.class)`.  However, all mention of Deadbolt's constraints have vanished and so we've replaced a fine-grained authorization system with a coarse-grained authentication-only system.  To fix this, we need to revert back to using Deadbolt in the controller and move `AuthenticationSupport` (or even the basic `Security.Authenticator`) integration into the `DeadboltHandler`.
 
 {title="Integrating Play's authentication with Deadbolt", lang=java}
 ~~~~~~~
