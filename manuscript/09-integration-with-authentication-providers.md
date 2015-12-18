@@ -95,7 +95,7 @@ public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
 }
 ~~~~~~~
 
-When we look at specific authenication providers, we will focus on the `beforeAuthCheck` as the integration.  It will become very clear, very quickly, the same approach is used for all authentication systems; this means that swapping out authentication without affecting authorization is both possible and trivial.
+When we look at specific authenication providers, we will focus on the `beforeAuthCheck` as the integration.  It will become very clear, very quickly, the same approach is used for all authentication systems; this means that swapping out authentication without affecting authorization is both possible and trivial.  We'll start with the built-in authentication mechanism of Play and adapt from there; with surprisingly few changes, you'll see how we can move from basic authentication through to using anything from Play-specific OAuth libraries such as [Play Authenticate](https://joscha.github.io/play-authenticate/) and even HTTP calls to dedicated identity platforms such as [Auth0](https://auth0.com/). 
 
 
 ## Play's built-in authentication support
