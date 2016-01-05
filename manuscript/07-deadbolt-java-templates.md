@@ -195,13 +195,15 @@ Use `Subject`s `Role`s to perform AND/OR/NOT checks.  The values given to the bu
 - be.objectify.deadbolt.java.views.html.restrict
 - be.objectify.deadbolt.java.views.html.restrictOr
 
-`la` and `as` are convenience functions for creating a `List<Array<String>>` and an `Array<String>`.  You can import both of them using
-
-
-    @import be.objectify.deadbolt.core.utils.TemplateUtils.{la, as}
-
-
 AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
+
+`anyOf` and `allOf` are convenience functions for creating a `List[Array[String]]` and an `Array[String]`.  You can import both of them using
+
+
+    @import be.objectify.deadbolt.core.utils.TemplateUtils.{anyOf, allOf}
+
+
+A> In earlier versions of Deadbolt, `anyOf` and `allOf` were called the more succinct and less readble `la` (list of arrays) and `as` (array of strings).  These methods are still available, but are deprecated.
 
 
 |Parameter                |Type                    | Default                       | Notes                                            |
@@ -210,7 +212,7 @@ AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is 
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
 | roles                   | List[Array[String]]    |                               | The AND/OR/NOT restrictions. One array defines   |
 |                         |                        |                               | an AND, multiple arrays define OR.   See notes   |
-|                         |                        |                               | on `la` and `as` above.                          |
+|                         |                        |                               | on `anyOf` and `allOf` above.                          |
 |-------------------------|------------------------|-------------------------------|--------------------------------------------------|
 | timeout                 | () -> Long             | A function returning          | The timeout applied to blocking calls.           |
 |                         |                        | `deadbolt.java.view-timeout`  |                                                  |
@@ -223,7 +225,7 @@ AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is 
 ~~~~~~~
 @import be.objectify.deadbolt.java.views.html.restrict
 
-@restrict(roles = la(as("foo"))) {
+@restrict(roles = anyOf(allOf("foo"))) {
     Subject requires the foo role for this to be visible
 }
 ~~~~~~~
@@ -233,7 +235,7 @@ AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is 
 ~~~~~~~
 @import be.objectify.deadbolt.java.views.html.restrict
 
-@restrict(roles = la(as("foo", "bar")) {
+@restrict(roles = anyOf(allOf("foo", "bar")) {
      Subject requires the foo AND bar roles for this to be visible
 }
 ~~~~~~~
@@ -243,7 +245,7 @@ AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is 
 ~~~~~~~
 @import be.objectify.deadbolt.java.views.html.restrict
 
-@restrict(roles = la(as("foo"), as("bar"))) {
+@restrict(roles = anyOf(allOf("foo"), allOf("bar"))) {
      Subject requires the foo OR bar role for this to be visible
 }
 ~~~~~~~
@@ -253,7 +255,7 @@ AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is 
 ~~~~~~~
 @import be.objectify.deadbolt.java.views.html.restrictOr
 
-@restrictOr(roles = la(as("foo", "bar"))) {
+@restrictOr(roles = anyOf(allOf("foo", "bar"))) {
      Subject requires the foo AND bar roles for this to be visible
 } {
 	Subject does not have the necessary roles
@@ -266,7 +268,7 @@ AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is 
 @(handler: be.objectify.deadbolt.java.DeadboltHandler)
 @import be.objectify.deadbolt.java.views.html.restrict
 
-@restrict(roles = la(as("foo"), as("bar")), handler = handler) {
+@restrict(roles = anyOf(allOf("foo"), allOf("bar")), handler = handler) {
      Subject requires the foo OR bar role for this to be visible
 }
 ~~~~~~~
