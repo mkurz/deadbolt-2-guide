@@ -26,7 +26,7 @@ Template security is like painted hardboard - the features it offers are certain
 
 
 ## Controller-level restrictions
-The controller layer is most vunerable part of your application to external attack, because that is the part that's visible to whichever networks it is on.  Attack in this sense may be a concious attack on your system, or inadvertant damage caused by unauthorized users who are otherwise authenticated in your system.  Deadbolt can't help with the first type, but it's ideal for the second.
+The controller layer is most vunerable part of your application to external attack, because that is the part that's visible to whichever networks it is on.  Attack in this sense may be a concious attack on your system, or inadvertant damage caused by unauthorized users who are otherwise authenticated in your system.  Deadbolt can help with both of these scenarios in the same way, by limiting the capabilities of any given user at the application level.
 
 
 Controller authorization blocks or allows access to an action.  Whereas template restrictions are essentially a boolean evaluation - "if user satisfies these conditions, then...", controller authorization is quite a bit more powerful.  Specifically, while an authorized result is generated from your application code, unauthorized results can be customised as required; you can return any status code you like along with any content you like.  If you're feeling particularly nasty, why not send a 302 redirect to a not-suitable-for-work website?  If you want to, the option is there.
