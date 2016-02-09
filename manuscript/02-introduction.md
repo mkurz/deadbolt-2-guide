@@ -74,9 +74,9 @@ There are also several books that you might want to check out.
 
 Nothing which attempts to be useful can gestate in a vacuum.  Many people donated their time, knowledge and critical capabilities to help make this book more useful.
 
-- Peter Hilton (@PeterHilton) - software developer, speaker, writer, author of "Play for Scala" and beer lover.
-- Francis De Brabandere (@somatik) - software developer, technology enthusiast, start-up founder and beer lover.
-- Daryl Greensill (@BigClumsyOaf) - todo: check one-line write-up
+- Peter Hilton ([@PeterHilton](https://twitter.com/PeterHilton)) - software developer, speaker, writer, author of "Play for Scala" and beer lover.
+- Francis De Brabandere ([@somatik](https://twitter.com/somatik)) - software developer, technology enthusiast, start-up founder and beer lover.
+- Daryl Greensill ([@BigClumsyOaf](https://twitter.com/BigClumsyOaf)) - todo: check one-line write-up
 
 ## Feedback
 
