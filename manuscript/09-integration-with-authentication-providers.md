@@ -57,23 +57,23 @@ GET    /messages          be.objectify.messages.Messages.getAllMessages()
 POST   /create            be.objectify.messages.Messages.createMessage()
 ~~~~~~~
 
-An authenticated user can access all three of these routes and obtain a successful result.  An unauthenticated user would hit a brick wall when accessing `/messages` or `/create` - specifically, they would run into whatever behaviour was specified in the `onAccessFailure` method of the current `DeadboltHandler`.
+An authenticated user can access all three of these routes and obtain a successful result.  An unauthenticated user would hit a brick wall when accessing `/messages` or `/create` - specifically, they would run into whatever behaviour was specified in the `onAuthFailure` method of the current `DeadboltHandler`.
 
 This is a good time to review the difference between the HTTP status codes `401 Unauthorized` and `403 Forbidden`.  A 401 means you don't have access *at the moment*, but you should try again after authenticating.   A 403 means the subject cannot access the resource with their current authorization rights, and re-authenticating will not solve the problem - in fact, the specification explicitly states that you shouldn't even attempt to re-authenticate.  A well-behaved application should respect the difference between the two.
 
-We can consider the `onAccessFailure` method to be the Deadbolt equivalent of a 403.  For a `DeadboltHandler` used by a RESTful controller, the status code should be enough to indicate the problem.  If you have an application that uses server-side rendering, you may well want to return content in the body of the response.  The end result is the same though - You Can't Do That.  Note the return type, a `Promise` containing a `Result` and not an `Optional<Result>` - access has very definitely failed at this point, and it needs to be dealt with.
+We can consider the `onAuthFailure` method to be the Deadbolt equivalent of a brick wall.  For a `DeadboltHandler` used by a RESTful controller, the status code should be enough to indicate the problem.  If you have an application that uses server-side rendering, you may well want to return content in the body of the response.  The end result is the same though - You Can't Do That.  Note the return type, a `Promise` containing a `Result` and not an `Optional<Result>` - access has very definitely failed at this point, and it needs to be dealt with.
 
 
 {title="Handling access failure", lang=java}
 ~~~~~~~
-public F.Promise<Result> onAccessFailure(final Http.Context context,
-                                         final String content) {
+public F.Promise<Result> onAuthFailure(final Http.Context context,
+                                       final String content) {
     return F.Promise.promise(Results::forbidden);
 }
 ~~~~~~~
 
 
-To manage the 401 use-case, we use the `beforeAuthCheck` method.  Unlike `onAccessFailure`, this method allows for the possibility that everything is fine.  It's perfectly reasonable to return an empty option from this method, indicating that no action should be taken and the request should continue unimpeded.
+Unlike `onAuthFailure`, the `beforeAuthCheck` method allows for the possibility that everything is fine.  It's perfectly reasonable to return an empty option from this method, indicating that no action should be taken and the request should continue unimpeded.
 
 {title="Doing nothing before a constraint is applied", lang=java}
 ~~~~~~~
@@ -95,8 +95,9 @@ public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
 }
 ~~~~~~~
 
-When we look at specific authenication providers, we will focus on the `beforeAuthCheck` as the integration.  It will become very clear, very quickly, the same approach is used for all authentication systems; this means that swapping out authentication without affecting authorization is both possible and trivial.  We'll start with the built-in authentication mechanism of Play and adapt from there; with surprisingly few changes, you'll see how we can move from basic authentication through to using anything from Play-specific OAuth libraries such as [Play Authenticate](https://joscha.github.io/play-authenticate/) and even HTTP calls to dedicated identity platforms such as [Auth0](https://auth0.com/). 
+On the other hand, you may choose to never implement any logic in `beforeAuthCheck` and instead have the behaviour driven by authorization failure.  The choice is entirely in the hands of the implementor; personally, I tend to use `onAuthFailure` to handle the 401/403 behaviour, because it removes the assumptions required by implementing checks in `beforeAuthCheck`.
 
+It will become very clear, very quickly, the same approach is used for all authentication systems; this means that swapping out authentication without affecting authorization is both possible and trivial.  We'll start with the built-in authentication mechanism of Play and adapt from there; with surprisingly few changes, you'll see how we can move from basic authentication through to using anything from Play-specific OAuth libraries such as [Play Authenticate](https://joscha.github.io/play-authenticate/) and even HTTP calls to dedicated identity platforms such as [Auth0](https://auth0.com/). 
 
 ## Play's built-in authentication support
 
@@ -236,3 +237,341 @@ public class MyDeadboltHandler extends AbstractDeadboltHandler {
     }
 }
 ~~~~~~~
+
+## Third-party user management
+
+I like the concept of third-party user (or identity) management.  It minimizes sensitive data held locally, provides features like multifactor authentication and provides a unified API for multiple authentication sources.  This last feature makes it very easy to create a simple integration point with Deadbolt, driving interaction with the user management on a per-event basis (with a little caching thrown in).  The sequence for this looks a little complicated, but it can be broken down into 4 distinct steps:
+
+* the initial authentication
+* subsequent use of cached user details
+* re-retrieving user details when the cache doen't contain them
+* re-authenticating when the user's authentication has expired on the user management platform
+
+If you're using Deadbolt, it's reasonable to assume you have one of two security models - either all actions require authorization or some actions require authorization, and that authorization may simply be "a user must be present".  As a result, the point the initial authentication occurs depends on your application.  The good news, as far as this requirement goes, is the implementation is both quite simple and common to all cases.  It comes down to the implementation of the `onAuthFailure` method of your `DeadboltHandler`, and might look something like this:
+
+{title="Triggering authentication when authorization fails - naive version", lang=java}
+~~~~~~~
+public F.Promise<Result> onAuthFailure(final Http.Context context,
+                                       final String s) {
+    return F.Promise.promise(login::render)
+                    .map(Results::unauthorized);
+}
+~~~~~~~
+
+But wait, this is wrong!  As discussed above, this assumes that all authorization failure occurs because there is no user present, and this ignores the difference between `401 Unauthorized` and `403 Forbidden`.  A better implementation wiil take this into account, by checking if there is a subject present.  If there is a subject present, it's a 403; if there isn't, it's a 401 and we can redirect to somewhere the user can log in.
+
+
+{title="Triggering authentication when authorization fails", lang=java}
+~~~~~~~
+public F.Promise<Result> onAuthFailure(final Http.Context context,
+                                       final String s) {
+    return getSubject(context).map(maybeSubject -> 
+        maybeSubject.map(subject -> 
+            Optional.of((User)subject))
+                    .map(denied::render)
+                    .orElseGet(() -> login.render()))
+                    .map(Results::unauthorized);
+}
+~~~~~~~
+
+### Integrating with Auth0
+[Auth0](https://auth0.com/) is a great identity management platform, and I'm not writing that just because they gave me a t-shirt.  One of the nice features they offer is a whole bunch of code you can pretty much drop into your application, including code for a Play 2 Scala controller.   Since we're in the Java portion of the book, and the Java example provided by Auth0 uses the JEE Servlet API, I've rewritten the Scala version for Java.  This was the only customization required, which I have to say was pretty impressive - the total time to integrate and have a working solution was less than 15 minutes.
+
+There are three core elements to the solution.  These are, in no particular order,
+
+* a log-in page
+* a controller to receive callbacks from Auth0
+* a DeadboltHandler implementation
+
+I've also added a small utility class called `AuthSupport` to help with the cache usage, which also makes testing easier, but this contains code that could happily live in the controller.
+
+##### AuthSupport
+This class has two simple function - it standardises the key used for caching the subject, and it wraps the cache result in an `Optional`. 
+
+{title="Integrating the authentication flow", lang=java}
+~~~~~~~
+package be.objectify.whale.security;
+
+import java.util.Optional;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import be.objectify.whale.models.User;
+import play.cache.CacheApi;
+import play.mvc.Http;
+
+@Singleton
+public class AuthSupport {
+
+    private final CacheApi cache;
+
+    @Inject
+    public AuthSupport(final CacheApi cache) {
+        this.cache = cache;
+    }
+
+    public Optional<User> currentUser(final Http.Context context) {
+        return Optional.ofNullable(cache.get(cacheKey(context.session().get("idToken"))));
+    }
+
+    public String cacheKey(final String key) {
+        return "user.cache." + key;
+    }
+}
+
+~~~~~~~
+
+
+##### The log-in page
+In order to log in, Auth0 provide a JavaScript solution that customises the form based on your configuration options; for example, an app registered in Auth0 for username/password support plus a couple of OAuth providers will receive a form that reflects those choices.  The simplest possible implementation of a log-in page, without concern for appearance, is as follows.
+
+{title="An Auth0 log-in form", lang=html}
+~~~~~~~
+@(clientId: String, domain: String, redirectUri: String)
+
+<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <div id="root" style="width: 280px ; margin: 40px auto ; padding: 10px ; border-width: 1px ;">
+            Log-in area
+        </div>
+        <script src="https://cdn.auth0.com/js/lock-7.12.min.js"></script>
+        <script>
+            var lock = new Auth0Lock('@clientId', '@domain');
+            lock.show({
+                container: 'root',
+                callbackURL: '@redirectUri',
+                responseType: 'code',
+                authParams: { scope: 'openid profile' }
+            });
+        </script>
+    </body>
+</html>
+~~~~~~~
+
+In the browser, you now have a completely functional log-in form that will trigger the authentication flow.  Once the form is submitted, Auth0 takes over until the authentication requirements are satisfied and then we receive a callback.
+
+![An Auth0 log-in form]()
+
+##### The controller
+The bulk of the logic is contained here, and this code is reasonably generic - barring the `User` and `UserDao` classes, this code can be used in any Play 2 application.  In broad terms, three things happen during a successful authentication flow - all of these are rooted in the `callback` method of the controller.
+
+1. The controller receives a callback, in the form of a HTTP request from Auth0 containing an authorization code.
+2. The controller makes a HTTP request to Auth0 to get the token.
+3. The controller makes a HTTP request to Auth0 to get the user details.
+
+{title="Integrating the authentication flow", lang=java}
+~~~~~~~
+package be.objectify.whale.controllers;
+
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
+import be.objectify.whale.dao.UserDao;
+import be.objectify.whale.models.User;
+import be.objectify.whale.security.AuthSupport;
+import be.objectify.whale.views.html.security.denied;
+import be.objectify.whale.views.html.security.login;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import play.Configuration;
+import play.cache.CacheApi;
+import play.libs.F;
+import play.libs.Json;
+import play.libs.concurrent.HttpExecutionContext;
+import play.libs.ws.WS;
+import play.libs.ws.WSResponse;
+import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.Results;
+
+public class AuthController extends Controller {
+
+    private final CacheApi cache;
+    private final HttpExecutionContext ec;
+    private final AuthSupport authSupport;
+    private final UserDao userDao;
+
+    private final String clientId;
+    private final String clientSecret;
+    private final String domain;
+    private final String redirectUri;
+
+    @Inject
+    public AuthController(final AuthSupport authSupport,
+                          final HttpExecutionContext ec,
+                          final CacheApi cache,
+                          final Configuration config,
+                          final UserDao userDao) {
+        this.cache = cache;
+        this.ec = ec;
+        this.authSupport = authSupport;
+        this.userDao = userDao;
+
+        this.clientId = config.getString("auth0.clientId");
+        this.clientSecret = config.getString("auth0.clientSecret");
+        this.domain = config.getString("auth0.domain");
+        this.redirectUri = config.getString("auth0.redirectURI");
+    }
+
+    /**
+     * Render the log-in view containing the Auth0 form
+     */
+    public CompletionStage<Result> logIn() {
+        return CompletableFuture.supplyAsync(() -> login.render(this.clientId,
+                                                                this.domain,
+                                                                this.redirectUri),
+                                             ec.current())
+                                .thenApplyAsync(Results::ok,
+                                                ec.current());
+    }
+
+    /**
+     * Receives an authorization code from Auth0
+     */
+    public CompletionStage<Result> callback(final Optional<String> maybeCode,
+                                            final Optional<String> maybeState) {
+        return maybeCode.map(code -> getToken(code).thenComposeAsync(token -> getUser(token._2,
+                                                                                      token),
+                                                                     ec.current())
+                                                   .thenApplyAsync(userAndToken -> {
+                                                       // userAndToken._1 is the user
+                                                       // userAndToken._2 is the token
+                                                       cache.set(authSupport.cacheKey(userAndToken._2._1),
+                                                                 userAndToken._1);
+                                                       session("idToken",
+                                                               userAndToken._2._1);
+                                                       session("accessToken",
+                                                               userAndToken._2._2);
+                                                       return redirect(routes.Application.dashboard());
+                                                   },
+                                                                   ec.current())
+                                                   .exceptionally(t -> unauthorized(t.getMessage())))
+                        .orElseGet(() -> CompletableFuture.supplyAsync(() -> badRequest("No parameters supplied"),
+                                                                       ec.current()));
+    }
+
+    /**
+     * Query Auth0 for the subject's token
+     */
+    private CompletionStage<F.Tuple<String, String>> getToken(final String code) {
+        final ObjectNode root = Json.newObject();
+        root.put("client_id",
+                 this.clientId);
+        root.put("client_secret",
+                 this.clientSecret);
+        root.put("redirect_uri",
+                 this.redirectUri);
+        root.put("code",
+                 code);
+        root.put("grant_type",
+                 "authorization_code");
+        return WS.url(String.format("https://%s/oauth/token",
+                                    this.domain))
+                 .setHeader(Http.HeaderNames.ACCEPT,
+                            Http.MimeTypes.JSON)
+                 .post(root)
+                 .thenApplyAsync(WSResponse::asJson,
+                                 ec.current())
+                 .thenApplyAsync(json -> new F.Tuple<>(json.get("id_token").asText(),
+                                                       json.get("access_token").asText()),
+                                 ec.current())
+                 .exceptionally(t -> {
+                     throw new IllegalStateException("Tokens not sent");
+                 });
+    }
+
+    /**
+     * Query Auth0 for the subject's details, including any metadata.
+     */
+    private CompletionStage<F.Tuple<User, F.Tuple<String, String>>> getUser(final String accessToken,
+                                                                            final F.Tuple<String, String> tuple) {
+        return WS.url(String.format("https://%s/userinfo",
+                                    this.domain))
+                 .setQueryParameter("access_token",
+                                    accessToken)
+                 .get()
+                 .thenApplyAsync(WSResponse::asJson,
+                                 ec.current())
+                 .thenApplyAsync(json -> new User.Builder().userName(json.get("user_id").asText())
+                                                           .givenName(json.get("name").asText())
+                                                           .avatar(json.get("picture").asText())
+                                                           .build(),
+                                 ec.current())
+                 .thenApplyAsync(this::createOrUpdate)
+                 .thenApplyAsync(localUser -> new F.Tuple<>(localUser,
+                                                            tuple));
+    }
+
+    /**
+     * Log the user out by removing the token from the session.
+     */
+    public CompletionStage<Result> logOut() {
+        return CompletableFuture.supplyAsync(() ->
+                                             {
+                                                 final Http.Session session = session();
+                                                 session.remove("idToken");
+                                                 session.remove("accessToken");
+                                                 return "ignoreThisValue";
+                                             },
+                                             ec.current())
+                                .thenApplyAsync(id -> redirect(routes.AuthController.logIn()),
+                                                ec.current());
+    }
+
+    /**
+     * If a user is present, render a page indicating the necessary authorization is not held.  If
+     * no user is present, redirect to a public part of the application.
+     */
+    public CompletionStage<Result> denied() {
+        final Http.Context ctx = ctx();
+        return CompletableFuture.supplyAsync(() -> authSupport.currentUser(ctx))
+                                .thenApply(maybeUser -> maybeUser.map(user -> forbidden(denied.render(maybeUser)))
+                                                                 .orElseGet(() -> redirect(routes.Unsecured.browse())));
+    }
+
+    /**
+     * If the subject already exists in the database, retrieve it.  If the subject is not in the database,
+     * insert one.
+     */
+    private User createOrUpdate(final User remoteUser) {
+        return userDao.findUserByUserName(remoteUser.userName)
+                      .map(localUser -> {
+                          final User updated = new User.Builder(localUser).givenName(remoteUser.givenName)
+                                                                          .familyName(remoteUser.familyName)
+                                                                          .avatar(remoteUser.avatar)
+                                                                          .lastLogin(ZonedDateTime.now(ZoneOffset.UTC))
+                                                                          .build();
+                          return userDao.update(updated);
+                      })
+                      .orElseGet(() -> userDao.create(new User.Builder().id(UUID.randomUUID())
+                                                                        .publicId(UUID.randomUUID())
+                                                                        .userName(remoteUser.userName)
+                                                                        .givenName(remoteUser.givenName)
+                                                                        .familyName(remoteUser.familyName)
+                                                                        .active(true)
+                                                                        .creationDate(ZonedDateTime.now(ZoneOffset.UTC))
+                                                                        .lastLogin(ZonedDateTime.now(ZoneOffset.UTC))
+                                                                        .avatar(remoteUser.avatar)
+                                                                        .build()));
+    }
+}
+~~~~~~~
+
+This is a lot of code, but authentication is now handled.  We now have a way to log in, and a way to retrieve the user details from Auth0.  This controller needs to be exposed in the routes file, and this also provides a nice overview to see what we've achieved.
+
+{title="Authentication controller routes"}
+~~~~~~~
+GET     /logIn        be.objectify.whale.controllers.AuthController.logIn()
+GET     /callback     be.objectify.whale.controllers.AuthController.callback(code: java.util.Optional[String], state: java.util.Optional[String])
+GET     /logOut       be.objectify.whale.controllers.AuthController.logOut()
+GET     /denied       be.objectify.whale.controllers.AuthController.denied()
+~~~~~~~
+
+Now we have a `/logIn` route, that means you can have an explicit link to log in from your application.  The one thing remaining to do is to have the log-in view displayed automatically when authorization fails.
+
+##### The DeadboltHandler
+
