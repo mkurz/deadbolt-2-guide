@@ -199,7 +199,7 @@ public class MyDeadboltHandler extends AbstractDeadboltHandler {
                                            final String content) {
         // you could also use the behaviour of the authenticator, e.g.
         // return F.Promise.promise(() -> authenticator.onUnauthorized(context));
-        return F.Promise.promise(() -> unauthorized("You can't do that"));
+        return F.Promise.promise(() -> forbidden("You can't do that"));
     }
 }
 ~~~~~~~
@@ -252,7 +252,7 @@ If you're using Deadbolt, it's reasonable to assume you have one of two security
 {title="Triggering authentication when authorization fails - naive version", lang=java}
 ~~~~~~~
 public F.Promise<Result> onAuthFailure(final Http.Context context,
-                                       final String s) {
+                                       final String contentType) {
     return F.Promise.promise(login::render)
                     .map(Results::unauthorized);
 }
@@ -264,7 +264,7 @@ But wait, this is wrong!  As discussed above, this assumes that all authorizatio
 {title="Triggering authentication when authorization fails", lang=java}
 ~~~~~~~
 public F.Promise<Result> onAuthFailure(final Http.Context context,
-                                       final String s) {
+                                       final String contentType) {
     return getSubject(context).map(maybeSubject -> 
         maybeSubject.map(subject -> 
             Optional.of((User)subject))
@@ -273,6 +273,29 @@ public F.Promise<Result> onAuthFailure(final Http.Context context,
                     .map(Results::unauthorized);
 }
 ~~~~~~~
+
+There's still a problem here - while the rendered output observes the difference between unauthorized and forbidden, but the HTTP status code is hard-wired to a 401.  One more tweak should fix this.
+
+{title="Synchronizing the content and HTTP status code", lang=java}
+~~~~~~~
+@Override
+public F.Promise<Result> onAuthFailure(final Http.Context context,
+                                       final String s) {
+    return getSubject(context)
+            .map(maybeSubject ->
+                         maybeSubject.map(subject -> Optional.of((User)subject))
+                                     .map(user -> new F.Tuple<>(true,
+                                                                denied.render(user)))
+                                     .orElseGet(() -> new F.Tuple<>(false,
+                                                                    login.render(clientId,
+                                                                                 domain,
+                                                                                 redirectUri))))
+            .map(subjectPresentAndContent -> subjectPresentAndContent._1
+                                             ? Results.forbidden(subjectPresentAndContent._2)
+                                             : Results.unauthorized(subjectPresentAndContent._2));
+}
+~~~~~~~
+
 
 ### Integrating with Auth0
 [Auth0](https://auth0.com/) is a great identity management platform, and I'm not writing that just because they gave me a t-shirt.  One of the nice features they offer is a whole bunch of code you can pretty much drop into your application, including code for a Play 2 Scala controller.   Since we're in the Java portion of the book, and the Java example provided by Auth0 uses the JEE Servlet API, I've rewritten the Scala version for Java.  This was the only customization required, which I have to say was pretty impressive - the total time to integrate and have a working solution was less than 15 minutes.
@@ -284,6 +307,8 @@ There are three core elements to the solution.  These are, in no particular orde
 * a DeadboltHandler implementation
 
 I've also added a small utility class called `AuthSupport` to help with the cache usage, which also makes testing easier, but this contains code that could happily live in the controller.
+
+A working example for this section can be found at [auth0-integration](https://github.com/schaloner/deadbolt-2-guide-examples/tree/master/auth0-integration).  To run it, you will need to create an application on Auth0 and fill in the client ID, client secret, etc, into `conf/application.conf`.  For the redirect URI, you can use `http://localhost:9000/callback` - don't forget to adjust the port if necessary.
 
 ##### AuthSupport
 This class has two simple function - it standardises the key used for caching the subject, and it wraps the cache result in an `Optional`. 
@@ -331,7 +356,7 @@ In order to log in, Auth0 provide a JavaScript solution that customises the form
 <!DOCTYPE html>
 <html lang="en">
     <body>
-        <div id="root" style="width: 280px ; margin: 40px auto ; padding: 10px ; border-width: 1px ;">
+        <div id="root">
             Log-in area
         </div>
         <script src="https://cdn.auth0.com/js/lock-7.12.min.js"></script>
@@ -359,205 +384,86 @@ The bulk of the logic is contained here, and this code is reasonably generic - b
 2. The controller makes a HTTP request to Auth0 to get the token.
 3. The controller makes a HTTP request to Auth0 to get the user details.
 
-{title="Integrating the authentication flow", lang=java}
+{title="Processing the callback from Auth0", lang=java}
 ~~~~~~~
-package be.objectify.whale.controllers;
+public F.Promise<Result> callback(final F.Option<String> maybeCode,
+                                  final F.Option<String> maybeState) {
+    return maybeCode.map(code -> getToken(code) // get the authentication token
+             .flatMap(token -> getUser(token))  // get the user details
+             .map(userAndToken -> {
+                 // userAndToken._1 is the user
+                 // userAndToken._2 is the token
+                 cache.set(authSupport.cacheKey(userAndToken._2._1),
+                           userAndToken._1,
+                           60 * 15); // cache the subject for 15 minutes
+                 session("idToken",
+                         userAndToken._2._1);
+                 session("accessToken",
+                         userAndToken._2._2);
+                 return redirect(routes.Application.index());
+             }))
+            .getOrElse(F.Promise.pure(badRequest("No parameters supplied")));
+}
+~~~~~~~
 
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
-import be.objectify.whale.dao.UserDao;
-import be.objectify.whale.models.User;
-import be.objectify.whale.security.AuthSupport;
-import be.objectify.whale.views.html.security.denied;
-import be.objectify.whale.views.html.security.login;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import play.Configuration;
-import play.cache.CacheApi;
-import play.libs.F;
-import play.libs.Json;
-import play.libs.concurrent.HttpExecutionContext;
-import play.libs.ws.WS;
-import play.libs.ws.WSResponse;
-import play.mvc.Controller;
-import play.mvc.Http;
-import play.mvc.Result;
-import play.mvc.Results;
+This callback provides the starting point for further interaction with Auth0 by giving us an authorization code.  With this code, we can request token information; `access_token` allows us to work with the subject's attributes, and ´id_token´ is a signed Json Web Token used to authenticate API calls.
 
-public class AuthController extends Controller {
+{title="Get the token information", lang=java}
+~~~~~~~
+private F.Promise<F.Tuple<String, String>> getToken(final String code) {
+    final ObjectNode root = Json.newObject();
+    root.put("client_id",
+             this.clientId);
+    root.put("client_secret",
+             this.clientSecret);
+    root.put("redirect_uri",
+             this.redirectUri);
+    root.put("code",
+             code);
+    root.put("grant_type",
+             "authorization_code");
+    return WS.url(String.format("https://%s/oauth/token",
+                                this.domain))
+             .setHeader(Http.HeaderNames.ACCEPT,
+                        Http.MimeTypes.JSON)
+             .post(root)
+             .map(WSResponse::asJson)
+             .map(json -> new F.Tuple<>(json.get("id_token").asText(),
+                                        json.get("access_token").asText()));
+}
+~~~~~~~
 
-    private final CacheApi cache;
-    private final HttpExecutionContext ec;
-    private final AuthSupport authSupport;
-    private final UserDao userDao;
+With these token data, we can retrieve the subject attributes.  At this point, it's possible to cache the subject to reduce network calls.  In this example, we have no concept of a database and so we rely entirely on Auth0 to provide subject information.  If you keep some user information local, this might be a good place to either create or retrieve that information.
 
-    private final String clientId;
-    private final String clientSecret;
-    private final String domain;
-    private final String redirectUri;
+{title="Get the subject attributes", lang=java}
+~~~~~~~
+private F.Promise<F.Tuple<User, F.Tuple<String, String>>> getUser(final F.Tuple<String, String> token) {
+    return WS.url(String.format("https://%s/userinfo",
+                                this.domain))
+             .setQueryParameter("access_token",
+                                token._2)
+             .get()
+             .map(WSResponse::asJson)
+             .map(json -> new User(json.get("user_id").asText(),
+                                   json.get("name").asText(),
+                                   json.get("picture").asText()))
+             .map(localUser -> new F.Tuple<>(localUser,
+                                             token));
+}
+~~~~~~~
 
-    @Inject
-    public AuthController(final AuthSupport authSupport,
-                          final HttpExecutionContext ec,
-                          final CacheApi cache,
-                          final Configuration config,
-                          final UserDao userDao) {
-        this.cache = cache;
-        this.ec = ec;
-        this.authSupport = authSupport;
-        this.userDao = userDao;
+Logging out simply requires the token information to be removed from the session, and the removal of the subject from the cache.
 
-        this.clientId = config.getString("auth0.clientId");
-        this.clientSecret = config.getString("auth0.clientSecret");
-        this.domain = config.getString("auth0.domain");
-        this.redirectUri = config.getString("auth0.redirectURI");
-    }
-
-    /**
-     * Render the log-in view containing the Auth0 form
-     */
-    public CompletionStage<Result> logIn() {
-        return CompletableFuture.supplyAsync(() -> login.render(this.clientId,
-                                                                this.domain,
-                                                                this.redirectUri),
-                                             ec.current())
-                                .thenApplyAsync(Results::ok,
-                                                ec.current());
-    }
-
-    /**
-     * Receives an authorization code from Auth0
-     */
-    public CompletionStage<Result> callback(final Optional<String> maybeCode,
-                                            final Optional<String> maybeState) {
-        return maybeCode.map(code -> getToken(code).thenComposeAsync(token -> getUser(token._2,
-                                                                                      token),
-                                                                     ec.current())
-                                                   .thenApplyAsync(userAndToken -> {
-                                                       // userAndToken._1 is the user
-                                                       // userAndToken._2 is the token
-                                                       cache.set(authSupport.cacheKey(userAndToken._2._1),
-                                                                 userAndToken._1);
-                                                       session("idToken",
-                                                               userAndToken._2._1);
-                                                       session("accessToken",
-                                                               userAndToken._2._2);
-                                                       return redirect(routes.Application.dashboard());
-                                                   },
-                                                                   ec.current())
-                                                   .exceptionally(t -> unauthorized(t.getMessage())))
-                        .orElseGet(() -> CompletableFuture.supplyAsync(() -> badRequest("No parameters supplied"),
-                                                                       ec.current()));
-    }
-
-    /**
-     * Query Auth0 for the subject's token
-     */
-    private CompletionStage<F.Tuple<String, String>> getToken(final String code) {
-        final ObjectNode root = Json.newObject();
-        root.put("client_id",
-                 this.clientId);
-        root.put("client_secret",
-                 this.clientSecret);
-        root.put("redirect_uri",
-                 this.redirectUri);
-        root.put("code",
-                 code);
-        root.put("grant_type",
-                 "authorization_code");
-        return WS.url(String.format("https://%s/oauth/token",
-                                    this.domain))
-                 .setHeader(Http.HeaderNames.ACCEPT,
-                            Http.MimeTypes.JSON)
-                 .post(root)
-                 .thenApplyAsync(WSResponse::asJson,
-                                 ec.current())
-                 .thenApplyAsync(json -> new F.Tuple<>(json.get("id_token").asText(),
-                                                       json.get("access_token").asText()),
-                                 ec.current())
-                 .exceptionally(t -> {
-                     throw new IllegalStateException("Tokens not sent");
-                 });
-    }
-
-    /**
-     * Query Auth0 for the subject's details, including any metadata.
-     */
-    private CompletionStage<F.Tuple<User, F.Tuple<String, String>>> getUser(final String accessToken,
-                                                                            final F.Tuple<String, String> tuple) {
-        return WS.url(String.format("https://%s/userinfo",
-                                    this.domain))
-                 .setQueryParameter("access_token",
-                                    accessToken)
-                 .get()
-                 .thenApplyAsync(WSResponse::asJson,
-                                 ec.current())
-                 .thenApplyAsync(json -> new User.Builder().userName(json.get("user_id").asText())
-                                                           .givenName(json.get("name").asText())
-                                                           .avatar(json.get("picture").asText())
-                                                           .build(),
-                                 ec.current())
-                 .thenApplyAsync(this::createOrUpdate)
-                 .thenApplyAsync(localUser -> new F.Tuple<>(localUser,
-                                                            tuple));
-    }
-
-    /**
-     * Log the user out by removing the token from the session.
-     */
-    public CompletionStage<Result> logOut() {
-        return CompletableFuture.supplyAsync(() ->
-                                             {
-                                                 final Http.Session session = session();
-                                                 session.remove("idToken");
-                                                 session.remove("accessToken");
-                                                 return "ignoreThisValue";
-                                             },
-                                             ec.current())
-                                .thenApplyAsync(id -> redirect(routes.AuthController.logIn()),
-                                                ec.current());
-    }
-
-    /**
-     * If a user is present, render a page indicating the necessary authorization is not held.  If
-     * no user is present, redirect to a public part of the application.
-     */
-    public CompletionStage<Result> denied() {
-        final Http.Context ctx = ctx();
-        return CompletableFuture.supplyAsync(() -> authSupport.currentUser(ctx))
-                                .thenApply(maybeUser -> maybeUser.map(user -> forbidden(denied.render(maybeUser)))
-                                                                 .orElseGet(() -> redirect(routes.Unsecured.browse())));
-    }
-
-    /**
-     * If the subject already exists in the database, retrieve it.  If the subject is not in the database,
-     * insert one.
-     */
-    private User createOrUpdate(final User remoteUser) {
-        return userDao.findUserByUserName(remoteUser.userName)
-                      .map(localUser -> {
-                          final User updated = new User.Builder(localUser).givenName(remoteUser.givenName)
-                                                                          .familyName(remoteUser.familyName)
-                                                                          .avatar(remoteUser.avatar)
-                                                                          .lastLogin(ZonedDateTime.now(ZoneOffset.UTC))
-                                                                          .build();
-                          return userDao.update(updated);
-                      })
-                      .orElseGet(() -> userDao.create(new User.Builder().id(UUID.randomUUID())
-                                                                        .publicId(UUID.randomUUID())
-                                                                        .userName(remoteUser.userName)
-                                                                        .givenName(remoteUser.givenName)
-                                                                        .familyName(remoteUser.familyName)
-                                                                        .active(true)
-                                                                        .creationDate(ZonedDateTime.now(ZoneOffset.UTC))
-                                                                        .lastLogin(ZonedDateTime.now(ZoneOffset.UTC))
-                                                                        .avatar(remoteUser.avatar)
-                                                                        .build()));
-    }
+{title="Log the subject out", lang=java}
+~~~~~~~
+public F.Promise<Result> logOut() {
+    return F.Promise.promise(() -> {
+        final Http.Session session = session();
+        final String idToken = session.remove("idToken");
+        session.remove("accessToken");
+        cache.remove(authSupport.cacheKey(idToken));
+        return "ignoreThisValue";
+    }).map(id -> redirect(routes.AuthController.logIn()));
 }
 ~~~~~~~
 
@@ -565,13 +471,45 @@ This is a lot of code, but authentication is now handled.  We now have a way to 
 
 {title="Authentication controller routes"}
 ~~~~~~~
-GET     /logIn        be.objectify.whale.controllers.AuthController.logIn()
-GET     /callback     be.objectify.whale.controllers.AuthController.callback(code: java.util.Optional[String], state: java.util.Optional[String])
-GET     /logOut       be.objectify.whale.controllers.AuthController.logOut()
-GET     /denied       be.objectify.whale.controllers.AuthController.denied()
+GET  /logIn     be.objectify.whale.controllers.AuthController.logIn()
+GET  /callback  be.objectify.whale.controllers.AuthController.callback(code: play.libs.F.Option[String], state: play.libs.F.Option[String])
+GET  /logOut    be.objectify.whale.controllers.AuthController.logOut()
+GET  /denied    be.objectify.whale.controllers.AuthController.denied()
 ~~~~~~~
 
 Now we have a `/logIn` route, that means you can have an explicit link to log in from your application.  The one thing remaining to do is to have the log-in view displayed automatically when authorization fails.
 
 ##### The DeadboltHandler
+There are only two methods that are required for this example to work.  `getSubject` will retrieve the subject from the cache, and `onAuthFailure` will handle things as discussed above.
 
+{title="Authentication controller routes"}
+~~~~~~~
+@Override
+public F.Promise<Optional<Subject>> getSubject(final Http.Context context) {
+    return F.Promise.promise(() -> Optional.ofNullable(cache.get(authSupport.cacheKey(context.session().get("idToken")))));
+}
+
+@Override
+public F.Promise<Result> onAuthFailure(final Http.Context context,
+                                       final String s) {
+    return getSubject(context)
+            .map(maybeSubject ->
+                         maybeSubject.map(subject -> Optional.of((User)subject))
+                                     .map(user -> new F.Tuple<>(true,
+                                                                denied.render(user)))
+                                     .orElseGet(() -> new F.Tuple<>(false,
+                                                                    login.render(clientId,
+                                                                                 domain,
+                                                                                 redirectUri))))
+            .map(subjectPresentAndContent -> subjectPresentAndContent._1
+                                             ? Results.forbidden(subjectPresentAndContent._2)
+                                             : Results.unauthorized(subjectPresentAndContent._2));
+}
+~~~~~~~
+
+#### Improvements
+This is a very simple example, but it demonstrates how easily it is to use event-driven behaviour and third-party identity management.  There is one major problem, however, and you have until the end of this sentence to figure out what it is.
+
+When the subject attributes are retrieved from Auth0, the resulting `User` object is cached for an arbitrary time - 15 minutes, in this case.  With the implementation of `DeadboltHandler` given above, once that 15 minutes have passed the user will need to re-authenticate.  However, it's possible their authenticate period on Auth0 is still valid and so we're placing an unnecessary burden on the end user.  A simple improvement would be to attempt retrieval of the user attributes from `DeadboltHandler#getSubject` when the cache doesn't contain the user.
+
+It's also possible to store meta data in Auth0, and so you can represent your roles and permissions there and bind them into local models when retrieving the subject's attributes.
