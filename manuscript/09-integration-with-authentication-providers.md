@@ -379,7 +379,7 @@ In order to log in, Auth0 provide a JavaScript solution that customises the form
 
 In the browser, you now have a completely functional log-in form that will trigger the authentication flow.  Once the form is submitted, Auth0 takes over until the authentication requirements are satisfied and then we receive a callback.
 
-![An Auth0 log-in form]()
+![An Auth0 log-in form](images/auth0-login.png)
 
 ##### The controller
 The bulk of the logic is contained here, and this code is reasonably generic - barring the `User` and `UserDao` classes, this code can be used in any Play 2 application.  In broad terms, three things happen during a successful authentication flow - all of these are rooted in the `callback` method of the controller.
