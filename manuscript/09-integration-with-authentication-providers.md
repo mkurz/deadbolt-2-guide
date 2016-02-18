@@ -283,16 +283,20 @@ public F.Promise<Result> onAuthFailure(final Http.Context context,
                                        final String s) {
     return getSubject(context)
             .map(maybeSubject ->
-                         maybeSubject.map(subject -> Optional.of((User)subject))
-                                     .map(user -> new F.Tuple<>(true,
-                                                                denied.render(user)))
-                                     .orElseGet(() -> new F.Tuple<>(false,
-                                                                    login.render(clientId,
-                                                                                 domain,
-                                                                                 redirectUri))))
-            .map(subjectPresentAndContent -> subjectPresentAndContent._1
-                                             ? Results.forbidden(subjectPresentAndContent._2)
-                                             : Results.unauthorized(subjectPresentAndContent._2));
+                         maybeSubject.map(subject -> 
+                                              Optional.of((User)subject))
+                                     .map(user -> 
+                                              new F.Tuple<>(true,
+                                                            denied.render(user)))
+                                     .orElseGet(() -> 
+                                              new F.Tuple<>(false,
+                                                            login.render(clientId,
+                                                                         domain,
+                                                                         redirectUri))))
+            .map(subjectPresentAndContent -> 
+                     subjectPresentAndContent._1
+                         ? Results.forbidden(subjectPresentAndContent._2)
+                         : Results.unauthorized(subjectPresentAndContent._2));
 }
 ~~~~~~~
 
@@ -437,7 +441,8 @@ With these token data, we can retrieve the subject attributes.  At this point, i
 
 {title="Get the subject attributes", lang=java}
 ~~~~~~~
-private F.Promise<F.Tuple<User, F.Tuple<String, String>>> getUser(final F.Tuple<String, String> token) {
+private F.Promise<F.Tuple<User, F.Tuple<String, String>>>
+                        getUser(final F.Tuple<String, String> token) {
     return WS.url(String.format("https://%s/userinfo",
                                 this.domain))
              .setQueryParameter("access_token",
@@ -482,7 +487,7 @@ Now we have a `/logIn` route, that means you can have an explicit link to log in
 ##### The DeadboltHandler
 There are only two methods that are required for this example to work.  `getSubject` will retrieve the subject from the cache, and `onAuthFailure` will handle things as discussed above.
 
-{title="Authentication controller routes"}
+{title="Authentication controller routes", lang=java}
 ~~~~~~~
 @Override
 public F.Promise<Optional<Subject>> getSubject(final Http.Context context) {
@@ -495,15 +500,18 @@ public F.Promise<Result> onAuthFailure(final Http.Context context,
     return getSubject(context)
             .map(maybeSubject ->
                          maybeSubject.map(subject -> Optional.of((User)subject))
-                                     .map(user -> new F.Tuple<>(true,
-                                                                denied.render(user)))
-                                     .orElseGet(() -> new F.Tuple<>(false,
-                                                                    login.render(clientId,
-                                                                                 domain,
-                                                                                 redirectUri))))
-            .map(subjectPresentAndContent -> subjectPresentAndContent._1
-                                             ? Results.forbidden(subjectPresentAndContent._2)
-                                             : Results.unauthorized(subjectPresentAndContent._2));
+                                     .map(user -> 
+                                          new F.Tuple<>(true,
+                                          denied.render(user)))
+                                     .orElseGet(() -> 
+                                          new F.Tuple<>(false,
+                                                        login.render(clientId,
+                                                                     domain,
+                                                                     redirectUri))))
+            .map(subjectPresentAndContent -> 
+                     subjectPresentAndContent._1
+                         ? Results.forbidden(subjectPresentAndContent._2)
+                         : Results.unauthorized(subjectPresentAndContent._2));
 }
 ~~~~~~~
 
