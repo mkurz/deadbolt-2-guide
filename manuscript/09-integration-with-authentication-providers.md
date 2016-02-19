@@ -319,15 +319,21 @@ This class has two simple function - it standardises the key used for caching th
 
 {title="Integrating the authentication flow", lang=java}
 ~~~~~~~
-package be.objectify.whale.security;
+package be.objectify.examples.auth0.security;
 
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import be.objectify.whale.models.User;
+import be.objectify.deadbolt.core.models.Subject;
+import be.objectify.examples.auth0.models.User;
 import play.cache.CacheApi;
 import play.mvc.Http;
 
+/**
+ * Utility methods for user caching.
+ *
+ * @author Steve Chaloner (steve@objectify.be)
+ */
 @Singleton
 public class AuthSupport {
 
@@ -338,15 +344,16 @@ public class AuthSupport {
         this.cache = cache;
     }
 
-    public Optional<User> currentUser(final Http.Context context) {
+    public Optional<User> currentUser(final Http.Context context)
+    {
         return Optional.ofNullable(cache.get(cacheKey(context.session().get("idToken"))));
     }
 
-    public String cacheKey(final String key) {
+    public String cacheKey(final String key)
+    {
         return "user.cache." + key;
     }
 }
-
 ~~~~~~~
 
 
