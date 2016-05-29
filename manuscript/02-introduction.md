@@ -33,7 +33,7 @@ How much of this still holds true for Deadbolt 2?  More than 50% and less than 1
 Deadbolt 2 v1.0 was released at roughly the same time as Play 2.0, and was essentially the logic of Deadbolt 1 exposed in the Play 2 style.  Nine months after that initial release - nine months, I should add, of woefully inadequate Scala support - I re-designed the architecture to a more modular approach, and made a few small changes to the API to remove anachronistic elements.
 
 
-There is now a core module written in Java, and separate idiomatic modules for Java and Scala.  This is slightly different to the architecture of Play 2 itself, where the core and the Scala API are co-located.
+There was now a core module written in Java, and separate idiomatic modules for Java and Scala.  This is slightly different to the architecture of Play 2 itself, where the core and the Scala API are co-located.  By the time v2.5 was released, I had deprecated the core - I felt it forced Java classes into the Scala API, leading to the need for Scala-to-Java type conversions.  The Java and Scala versions of Deadbolt are now united in philosophy and capability, but no longer by any common code.
 
 
 ## Java versus Scala
@@ -47,12 +47,11 @@ The second is that by writing the Scala section last, I have a chance to increas
 
 ## Versions
 
-The examples in this book are for Play 2.4, and use the following versions of Deadbolt
+The examples in this book are for Play 2.5, and use the following versions of Deadbolt
 
-- `"be.objectify" %% "deadbolt-java" % "2.4.3"`
-- `"be.objectify" %% "deadbolt-scala" % "2.4.3"`
+- `"be.objectify" %% "deadbolt-java" % "2.5.0"`
+- `"be.objectify" %% "deadbolt-scala" % "2.5.1"`
 
-User demand lead to some API-level changes in the 2.4.4 Scala release; these changes will be detailed in the Scala section.
 
 ## Target audience
 
@@ -61,7 +60,7 @@ This book works on the following assumptions:
 - you have a working knowledge of Play
 - you know Java or Scala (or both)
 
-If you want to learn Play, the [Play website](https://playframework.com/documentation/2.4.x/Home) is the best place to start.
+If you want to learn Play, the [Play website](https://playframework.com/documentation/2.5.x/Home) is the best place to start.
 
 There are also several books that you might want to check out.
 
