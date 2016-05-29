@@ -3,29 +3,59 @@
 Deadbolt 2 for Java provides an idiomatic API for dealing with Java controllers and templates rendered from Java controllers in Play applications.  It takes advantage of the features such as access to the HTTP context to give access to the current request and session, and the annotation-driven interceptor support.
 
 ## The Deadbolt Handler
-For any module - or framework - to be useable, it must provide a mechanism by which it can be hooked into your application.  For Deadbolt, the central hook is the `be.objectify.deadbolt.java.DeadboltHandler` interface.  The four methods defined by this interface are crucial to Deadbolt - for example, `DeadboltHandler#getSubject` gets the current subject (if any), whereas `DeadboltHandler#onAccessFailure` is used to generate a response when authorization fails.
+For any module - or framework - to be useable, it must provide a mechanism by which it can be hooked into your application.  For Deadbolt, the central hook is the `be.objectify.deadbolt.java.DeadboltHandler` interface.  The four methods defined by this interface are crucial to Deadbolt - for example, `DeadboltHandler#getSubject` gets the current subject (if any), whereas `DeadboltHandler#onAccessFailure` is used to generate a response when authorization fails.  There is also a default method called `handlerName` which will be discussed in the section on handler caches.
 
 DeadboltHandler implementations should be stateless.
 
 For each method, a `CompletionStage` is returned - this is Java 8 interface for a future.  If the future may complete to have an empty value, e.g. calling `getSubject` when no subject is present, the return type is `CompletionStage<Optional>`.
 
-An application may have one or more handler implementations, which will be explored when we discuss the `HandlerCache
-Despite the use of the definite article in the section title, you can have as many Deadbolt handlers in your app as you wish.  These can be specified on a per-constraint basis, allowing tight contol over 
+An application may have one or more handler implementations, which will be explored when we discuss the `HandlerCache`.  Despite the use of the definite article in the section title, you can have as many Deadbolt handlers in your app as you wish.  These can be specified on a per-constraint basis, allowing tight contol over your authorization configuration if required. 
 
-### Performing pre-constraint tests
-Before a constraint is applied, the `F.Promise<Optional<Result>> beforeAuthCheck(Http.Context context)` method of the current handler is invoked.  If the resulting promise completes to a non-empty `Optional`, the target action is not invoked and instead the result of `beforeAuthCheck` is used for the HTTP response; if the resulting promise completes to an empty `Optional` the action is invoked with the Deadbolt constraint applied to it.
+### AbstractDeadboltHandler
+Deadbolt provides an abstract implementation of `DeadboltHandler`, called - in time-honoured fashion - `AbstractDeadboltHandler`.  This provides the following behaviour:
 
+* No pre-authorization operations are carried out; a future containg an empty option is returned.
+* No subject is present; a future containing an empty option is returned.
+* No dynamic resource handler is present; as you can probably guess by now, a future containing an empty option is returned.
+* Authorization failure gives the standard Play unauthorized template rendered into a HTTP 401 response.
+
+`AbstractDeadboltHandler` takes an instance of `be.objectify.deadbolt.java.ExecutionContextProvider` in its constructor.  When using methods such as `CompletableFuture#supplyAsync`, this should be used to provide the executor necessary to ensure cross-thread access to the context.
+
+{title="Enable cross-thread access to the context", lang=java}
+~~~~~~~
+public CompletionStage<Result> onAuthFailure(final Http.Context context,
+                                             final Optional<String> content) {
+    final ExecutionContext executionContext = executionContextProvider.get();
+    final ExecutionContextExecutor executor = HttpExecution.fromThread(executionContext);
+    return CompletableFuture.supplyAsync(unauthorized::render,
+                                         executor)
+                            .thenApplyAsync(Results::unauthorized,
+                                            executor);
+}
+~~~~~~~
+
+### Performing pre-constraint operations
+Before a constraint is applied, the `CompletionStage<Optional<Result>> beforeAuthCheck(Http.Context context)` method of the current handler is invoked.  If the resulting promise completes to a non-empty `Optional`, the target action is not invoked and instead the result of `beforeAuthCheck` is used for the HTTP response; if the resulting promise completes to an empty `Optional` the action is invoked with the Deadbolt constraint applied to it.
+
+You may want to use this method to test if a subject is present.  However, it's important to be aware that this approach will actually shortcut the use of some annotations and result in inconsistent behaviour.  The simplest example is the "subject not present" constraint, which requires no subject to be present for the action to be authorized.  If you pre-emptively check for a subject in `beforeAuthCheck` and fail if one isn't present, this means the "subject not present" check will fail!  It's recommended to use the constraints to drive this behaviour, and handle the consequences of failure in the `onAccessFailure` method. 
+
+If you don't want to carry out any action before authorization constraints are applied, just return a completed future containng an empty option.  Alternatively, extend `AbstractDeadboltHandler` and do not override this method.
 
 ### Obtaining the subject
-To get the current subject, the `F.Promise<Optional<Subject>> getSubject(Http.Context context)` method is invoked.  Returning an empty `Optional` indicates there is no subject present - this is a valid scenario.
+To get the current subject, the `CompletionStage<Optional<Subject>> getSubject(Http.Context context)` method is invoked.  Returning an empty `Optional` indicates there is no subject present - this is a completely valid scenario, typically indicating no successful authentication has yet taken place.
 
+By default, subjects are not cached and so this method is called every time the subject is required.  If you have multiple constraints, for example if you're using a lot of template constraints, this can become quite expensive.  If you want the subject to be cached on a per-request basis, add `deadbolt.java.cache-user=true` to your configuration.  Once this is done, caching will be handled automatically and this method will then only be called when no subject is already cached.
+
+How the subject is obtained depends largely on how you authenticate subjects.  You may simply get some identifier from a cookie and use it to look up a subject in the database; alternatively, your authentication library may provide support for access to subjects.
 
 ### Dealing with authorization failure
-When authorization fails, the `F.Promise<Result> onAccessFailure(Http.Context context, String content)` method is used to obtain a result for the HTTP response.  The result required from the `F.Promise` returned from this method is a regular `play.mvc.Result`, so it can be anything you chose.  You might want to return a 403 forbidden, redirect to a location accessible to everyone, etc.
+When authorization fails, the `CompletionStage<Result> onAccessFailure(Http.Context context, String content)` method is used to obtain a result for the HTTP response.  The result required from the `CompletionStage` returned from this method is a regular `play.mvc.Result`, so it can be anything you chose.  You might want to return a 403 forbidden, redirect to a location accessible to everyone, etc.
 
 
 ### Dealing with dynamic constraints
-Dynamic constraints, which are `Dynamic` and `Pattern.CUSTOM` constraints, are dealt with by implementations of `DynamicResourceHandler`; this will be explored in a later chapter.  For now, it's enough to say `F.Promise<Optional<DynamicResourceHandler>> getDynamicResourceHandler(Http.Context context)` is invoked when a dynamic constraint it used.
+Dynamic constraints, which are `Dynamic` and `Pattern.CUSTOM` constraints, are dealt with by implementations of `DynamicResourceHandler`; this will be explored in a later chapter.  For now, it's enough to say `CompletionStage<Optional<DynamicResourceHandler>> getDynamicResourceHandler(Http.Context context)` is invoked when a dynamic constraint is used.
+
+If you don't have any dynamic constraints, just return a completed future containng an empty option.  Alternatively, extend `AbstractDeadboltHandler` and do not override this method.
 
 
 ## Expose your DeadboltHandlers with a HandlerCache
@@ -88,7 +118,7 @@ public class MyHandlerCache implements HandlerCache {
 
 Ideally, handler implementations should be self-sufficient.  To this end, the `DeadboltHandler` interface contains a default method called `handlerName`.  By default, this returns the class name.  To make it more useful, implement the method and specific the handler name in it.
 
-{title="Over-riding the handler name", lang=java}
+{title="Overriding the handler name", lang=java}
 ~~~~~~~
 public class MyDeadboltHandler implements DeadboltHandler {
     
@@ -150,7 +180,7 @@ public class CustomDeadboltHook extends Module {
 ### Using dependency injection with handlers
 Both of these examples would work fine, but ignore the wide-spread and recommended use of dependency injection in Play 2.5.  You may find it more useful to inject handlers into the handler cache, especially if those handlers themselves rely on injected components.  As we've already seen, it's possible to have multiple handler implementations so we also need a way to distinguish between implementations during injection.
 
-The trick here is to qualify the handlers.  This example will use the Guice approach; if you're using a different DI framework, you need to check if it has support for a similar mechanism.  If your application has a single handler implementation, you can skip this step.
+The trick here is to qualify the handlers.  This example will use the Guice approach; if you're using a different DI framework, you need to check if it has support for a similar mechanism.  If your application has a single handler implementation, you can skip this step and just declare the binding and inject the instance in the normal way.
 
 {title="Binding annotations for multiple handlers", lang=java}
 ~~~~~~~
@@ -189,8 +219,14 @@ The ´bindings´ method of the module needs to be updated to be aware of the han
 ~~~~~~~
 public Seq<Binding<?>> bindings(final Environment environment,
                                     final Configuration configuration) {
-    return seq(bind(DeadboltHandler.class).qualifiedWith(HandlerQualifiers.MainHandler.class).to(MyDeadboltHandler.class).in(Singleton.class),
-               bind(DeadboltHandler.class).qualifiedWith(HandlerQualifiers.AltHandler.class).to(MyAlternativeDeadboltHandler.class).in(Singleton.class),
+    return seq(bind(DeadboltHandler.class)
+                        .qualifiedWith(HandlerQualifiers.MainHandler.class)
+                        .to(MyDeadboltHandler.class)
+                        .in(Singleton.class),
+               bind(DeadboltHandler.class)
+                        .qualifiedWith(HandlerQualifiers.AltHandler.class)
+                        .to(MyAlternativeDeadboltHandler.class)
+                        .in(Singleton.class),
                bind(HandlerCache.class).to(MyHandlerCache.class).in(Singleton.class));
 }
 ~~~~~~~
@@ -207,7 +243,8 @@ public class MyHandlerCache implements HandlerCache {
     private final DeadboltHandler defaultHandler;
 
     @Inject
-    public MyHandlerCache(@HandlerQualifiers.MainHandler final DeadboltHandler defaultHandler,
+    public MyHandlerCache(@HandlerQualifiers.MainHandler 
+                                final DeadboltHandler defaultHandler,
                           @HandlerQualifiers.AltHandler final DeadboltHandler altHandler) {
         this.defaultHandler = defaultHandler;
 
