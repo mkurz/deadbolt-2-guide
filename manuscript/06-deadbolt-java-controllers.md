@@ -60,13 +60,13 @@ Now you mention it, you can combine all of the above in arbitrary compositions t
 `@SubjectPresent` can be used at the class or method level.
 
 |Parameter                |Type                              |Default             |Notes |
-|-------------------------|----------------------------------|--------------------|-|
+|------------------------------------------------------------|----------------------|
 | content                 | String                           | ""                 | A hint to indicate the content  expected in the response.  This value will be passed to `DeadboltHandler#onAccessFailure`.   The value of this parameter is completely arbitrary. |
-|-------------------------|----------------------------------|--------------------|-|
+|-----------------------------------------------------------------------------------|
 | handlerKey              | String                           | "defaultHandler"   | The name of a handler in the `HandlerCache`. |
-|-------------------------|----------------------------------|--------------------|-|
+|-----------------------------------------------------------------------------------|
 | deferred                | boolean                          | false              | If true, the interceptor will not be applied until a `DeadboltDeferred` annotation is encountered. |
-|-------------------------|----------------------------------|--------------------|-|
+|-----------------------------------------------------------------------------------|
 | forceBeforeAuthCheck    | false                            | false              | By default, the `beforeAuthCheck` method of the `DeadboltHandler` is not invoked before this constraint is applied, because implementations of `beforeAuthCheck` that return a non-empty `Optional` when no subject is present can short-cut this constraint. |
 
 {title="Require a subject for all actions in a controller", lang=java}
