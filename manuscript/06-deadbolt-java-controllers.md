@@ -1,5 +1,5 @@
 # Java controller constraints
-If you like annotations in Java code, you're in for a treat.  If you don't, this may be a good time to consider the Scala version.
+If you like annotations in Java code, you're in for a treat.  If you don't, this may be a good time to consider the Scala version.  Actually, that's not strictly true - it also turns out that if you take long enough to write a book, you add new features that allow constraints to be applied during routing; we'll get to that later, I just didn't want you to panic at the thought of yet more annotations in your code. 
 
 One very important point to bear in mind is the order in which Play evaluates annotations.  Annotations applied to a method are applied to annotations applied to a class.  This can lead to situations where Deadbolt method constraints deny access because information from a class constraint.  See the section on deferring method-level interceptors for a solution to this.
 
@@ -11,10 +11,11 @@ Static constraints, are implemented entirely within Deadbolt because it can find
 
 The static constraints available are
 
-- SubjectPresent
-- SubjectNotPresent
-- Restrict
-- Pattern - when using EQUALITY or REGEX
+- `SubjectPresent`
+- `SubjectNotPresent`
+- `Restrict`
+- `RoleBasedPermissions`
+- `Pattern` - when using EQUALITY or REGEX
 
 **Dynamic constraints**
 
@@ -22,8 +23,12 @@ Dynamic constraints are, as far as Deadbolt is concerned, completely arbitrary; 
 
 The dynamic constraints available are
 
-- Dynamic
-- Pattern - when using CUSTOM
+- `Dynamic`
+- `Pattern` - when using CUSTOM
+
+**Anything else?**
+
+Now you mention it, you can combine all of the above in arbitrary compositions to define constraint trees.  These can be applied using the `Composite` annotation.
 
 {pagebreak} 
 
@@ -33,18 +38,25 @@ The dynamic constraints available are
 
 `@SubjectPresent` can be used at the class or method level.
 
-|Parameter                |Type                              |Default             |Notes                                             |
-|-------------------------|----------------------------------|--------------------|--------------------------------------------------|
-| content                 | String                           |""                  | A hint to indicate the content  expected in the  |
-|                         |                                  |                    | response.  This value will be passed to          |
-|                         |                                  |                    | `DeadboltHandler#onAccessFailure`.   The value   |
-|                         |                                  |                    | of this parameter is completely arbitrary.       |
-|-------------------------|----------------------------------|--------------------|--------------------------------------------------|
-| handlerKey              | String                           |"defaultHandler"    | The name of a handler in the `HandlerCache`      |
-|-------------------------|----------------------------------|--------------------|--------------------------------------------------|
-| deferred                | boolean                          |false               | If true, the interceptor will not be applied     |
-|                         |                                  |                    | until a `DeadboltDeferred` annotation is         |
-|                         |                                  |                    | encountered.                                     |
+|Parameter                |Type                              |Default             |Notes                                              |
+|-------------------------|----------------------------------|--------------------|---------------------------------------------------|
+| content                 | String                           | ""                 | A hint to indicate the content  expected in the   |
+|                         |                                  |                    | response.  This value will be passed to           |
+|                         |                                  |                    | `DeadboltHandler#onAccessFailure`.   The value    |
+|                         |                                  |                    | of this parameter is completely arbitrary.        |
+|-------------------------|----------------------------------|--------------------|---------------------------------------------------|
+| handlerKey              | String                           | "defaultHandler"   | The name of a handler in the `HandlerCache`       |
+|-------------------------|----------------------------------|--------------------|---------------------------------------------------|
+| deferred                | boolean                          | false              | If true, the interceptor will not be applied      |
+|                         |                                  |                    | until a `DeadboltDeferred` annotation is          |
+|                         |                                  |                    | encountered.                                      |
+|-------------------------|----------------------------------|--------------------|---------------------------------------------------|
+| forceBeforeAuthCheck    | false                            | false              | By default, the `beforeAuthCheck` method of the   |
+|                         |                                  |                    | `DeadboltHandler` is not invoked before this      |
+|                         |                                  |                    | constraint is applied, because implementations    |
+|                         |                                  |                    | of `beforeAuthCheck` that return a non-empty      |
+|                         |                                  |                    | `Option` when no subject is present can short-cut |
+|                         |                                  |                    | this constraint.                                  |
 
 {title="Require a subject for all actions in a controller", lang=java}
 ~~~~~~~
@@ -94,17 +106,24 @@ public class MyController extends Controller
 `@SubjectNotPresent` can be used at the class or method level.
 
 |Parameter                |Type                              |Default             |Notes                                             |
-|-------------------------|----------------------------------|--------------------|--------------------------------------------------|
-| content                 | String                           |""                  | A hint to indicate the content  expected in      |
-|                         |                                  |                    | the response.  This value will be passed         |
-|                         |                                  |                    | to `DeadboltHandler#onAccessFailure`.   The      |
-|                         |                                  |                    | value of this parameter is completely arbitrary. |
-|-------------------------|----------------------------------|--------------------|--------------------------------------------------|
-| handlerKey              | String                           |"defaultHandler"    | The name of a handler in the `HandlerCache`      |
-|-------------------------|----------------------------------|--------------------|--------------------------------------------------|
-| deferred                | boolean                          |false               | If true, the interceptor will not be applied     |
-|                         |                                  |                    | until a `DeadboltDeferred` annotation is         |
-|                         |                                  |                    | encountered.                                     |
+|-------------------------|----------------------------------|--------------------|---------------------------------------------------|
+| content                 | String                           |""                  | A hint to indicate the content  expected in       |
+|                         |                                  |                    | the response.  This value will be passed          |
+|                         |                                  |                    | to `DeadboltHandler#onAccessFailure`.   The       |
+|                         |                                  |                    | value of this parameter is completely arbitrary.  |
+|-------------------------|----------------------------------|--------------------|---------------------------------------------------|
+| handlerKey              | String                           |"defaultHandler"    | The name of a handler in the `HandlerCache`       |
+|-------------------------|----------------------------------|--------------------|---------------------------------------------------|
+| deferred                | boolean                          |false               | If true, the interceptor will not be applied      |
+|                         |                                  |                    | until a `DeadboltDeferred` annotation is          |
+|                         |                                  |                    | encountered.                                      |
+|-------------------------|----------------------------------|--------------------|---------------------------------------------------|
+| forceBeforeAuthCheck    | false                            | false              | By default, the `beforeAuthCheck` method of the   |
+|                         |                                  |                    | `DeadboltHandler` is not invoked before this      |
+|                         |                                  |                    | constraint is applied, because implementations    |
+|                         |                                  |                    | of `beforeAuthCheck` that return a non-empty      |
+|                         |                                  |                    | `Option` when no subject is present can short-cut |
+|                         |                                  |                    | this constraint.                                  |
 
 {title="Require NO subject for all actions in a controller", lang=java}
 ~~~~~~~
@@ -281,6 +300,112 @@ public class MyController extends Controller
         // or support but not viewer roles
         ...
     }
+}
+~~~~~~~
+
+{pagebreak} 
+
+## RoleBasedPermissions
+
+Roles and permissions are separate concepts. Roles do not imply permissions, and vice versa. 
+
+Roles are inherently tied to `Restrict` , so when `@Restrict` is used it uses `Subject#getRoles` and looks if 
+the subject has the required role. If multiple (i.e. `AND`) or alternative (i.e. `OR`) relationships are 
+defined - let's say `@Restrict(@Group({"admin", "printer"}))`, in which a subject must have the (admin AND printer) 
+roles - that is also handled. This is done through a straightforward comparison of the required role name 
+and the name of the roles the subject has, obtained via `Role#getName`.
+
+Permissions are inherently tied to `Pattern`, and allow for greater granularity. The `Pattern` constraint uses 
+`Subject#getPermissions` and matches e.g. `@Pattern("admin.printer")` against the subject's permissions.
+
+Let's assume a company that has various departments, e.g. IT support, public relations, etc, and take two subjects.
+
+Subject A has been assigned the following:
+
+- Roles
+ - `admin`
+ - `pr`
+- Permissions
+ - `admin.pr.blog.post.create`
+ - `admin.pr.blog.post.delete`
+ - `admin.pr.blog.post.update`
+
+Subject B has been assigned the following:
+
+- Roles
+ - `admin`
+`it`
+- Permissions
+ - `admin.it.printer`
+ - `admin.it.ldap`
+ - `admin.it.router`
+
+A controller action annotated with `@Restrict(@Group("admin"))` would be accessible to both subject A and subject B, even 
+though they are admins in different departments. To restrict the action to admins of the IT department, you would need to
+ use `@Restrict(@Group({"admin", "it"}))`.
+
+A controller action annotated with `@Pattern("admin.*")` would be accessible to both subject A and subject B, even though 
+they are admins in different departments. To restrict the action to admins of the IT department, you would need to use 
+`@Pattern("admin.it.*")`.
+
+However - and here's the important bit - removing the admin role from a user would deny them access to actions marked 
+with `@Restrict(@Group("admin"))` but still allow them access to actions marked with `@Pattern("admin.*")`.  If you only
+use roles or only use permissions, this isn't an issue.  If you do use both, it can lead to inconsistencies and indeterminate
+authorizations.
+
+Role-based permissions are a way of combining the two, by associating permissions with roles using 
+`DeadboltHandler#getPermissionsForRole`.
+
+- an action is constrained to a role specified using e.g. `@RoleBasedPermissions("admin")`
+- the Deadbolt handler is used to get the permissions associated with the admin role, using `DeadboltHandler#getPermissionsForRole`
+- the permissions explicitly obtained from Subject#getPermissions must provide a match.
+
+This is similar to using `@Pattern`, except that you can only constraint access with a single permission this way, whereas 
+`@RoleBasedPermissions` allows you to constraint access with any of the permissions linked to a role. Let's assume that a 
+role `foo` gives these permissions:
+
+- `admin.pr.blog.post.create`
+- `admin.pr.blog.post.delete`
+- `admin.pr.blog.post.update`
+- `admin.pr.twitter.post`
+
+Using `@RoleBasedPermissions("foo")`, you can constrain access to a subject with any of those permissions. However, if you want 
+to have an access to an action constrained to subjects with `admin.pr.twitter permissions`, you can target a subset of subjects 
+with the `foo` role using `@Pattern("admin.pr.twitter.*")`. In practice, you may not want to mix the different approaches but 
+the possibility is there.
+
+This still doesn't provide a mechanism for assigning those permissions to a subject when a role is assigned, because this is
+more properly something that should be handled by the application itself. This could be done by injecting the handler cache into 
+your user management code, which can then be used to obtain the default handler, and when a subject is given a role, use 
+`DeadboltHandler#getPermissionsForRole` to find out which permissions to assign the subject at the same time. This make a small 
+assumption: even if you have multiple handlers, the result of `DeadboltHandler#getPermissionsForRole` would always be the same 
+for any given role.
+
+Equally, when removing a role from a subject, `DeadboltHandler#getPermissionsForRole` can be used to determine the subset of 
+permissions to remove from the subject, e.g. (permissions of removed role) \ (permissions of all other roles held by subject).
+
+|Parameter                |Type                              |Default                |Notes                                             |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| value                   | String                           |                       | The role name.                                   |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| content                 | String                           | ""                    | A hint to indicate the content  expected in      |
+|                         |                                  |                       | the response.  This value will be passed         |
+|                         |                                  |                       | to `DeadboltHandler#onAccessFailure`.  The value |
+|                         |                                  |                       | of this parameter is completely arbitrary.       |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| handlerKey              | String                           | "defaultHandler"      | The name of a handler in the `HandlerCache`      |
+|-------------------------|----------------------------------|-----------------------|--------------------------------------------------|
+| deferred                | boolean                          | false                 | If true, the interceptor will not be applied     |
+|                         |                                  |                       | until a `DeadboltDeferred` annotation is         |
+|                         |                                  |                       | encountered.                                     |
+
+{title="Using a role name to specify permissions", lang=java}
+~~~~~~~
+@RoleBasedPermissions("foo")
+public F.Promise<Result> someMethod() 
+{
+    // the method will execute if the subject has one or more of the permissions obtained
+    // via DeadboltHandler#getPermissionsForRole("fooa")
 }
 ~~~~~~~
 
