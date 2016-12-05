@@ -3,7 +3,28 @@ If you like annotations in Java code, you're in for a treat.  If you don't, this
 
 One very important point to bear in mind is the order in which Play evaluates annotations.  Annotations applied to a method are applied to annotations applied to a class.  This can lead to situations where Deadbolt method constraints deny access because information from a class constraint.  See the section on deferring method-level interceptors for a solution to this.
 
-As with the previous chapter, here is a a breakdown of all the Java annotation-driven interceptors available in Deadbolt Java, with parameters, usages and tips and tricks.
+As with the previous chapter, here is a a breakdown of all the Java annotation-driven interceptors available in Deadbolt Java, with parameters, usages and tips and tricks.  Anywhere you see `ec.current()`, this is obtaining a `java.util.concurrent.Executor` from the `HttpExecutionContext` which has been injected into the controller.  To avoid repeating it in every example, assume that each example method exists in a controller similar to the following.
+
+{title="Injecting the controller with an execution context", lang=java}
+~~~~~~~
+import java.util.concurrent.Executor;
+import javax.inject.Inject;
+import play.libs.concurrent.HttpExecutionContext;
+
+public class FooController extends Controller
+{
+    private final HttpExecutionContext ec;
+
+    @Inject
+    public void FooController(final HttpExecutionContext ec)
+    {
+        this.ec = ec;
+    }
+
+    // ...other methods
+}
+~~~~~~~
+
 
 **Static constraints**
 
@@ -63,13 +84,13 @@ Now you mention it, you can combine all of the above in arbitrary compositions t
 @SubjectPresent
 public class MyController extends Controller
 {
-    public F.Promise<Result> index()
+    public CompletionStage<Result> index()
     {
         // this method will not be invoked unless there is a subject present
         ...
     }
 
-    public F.Promise<Result> search()
+    public CompletionStage<Result> search()
     {
         // this method will not be invoked unless there is a subject present
         ...
@@ -82,14 +103,14 @@ public class MyController extends Controller
 // Deny access to a single method of a controller unless there is a user present
 public class MyController extends Controller
 {
-    public F.Promise<Result> index()
+    public CompletionStage<Result> index()
     {
         // this method is accessible to anyone
         ...
     }
 
     @SubjectPresent
-    public F.Promise<Result> search()
+    public CompletionStage<Result> search()
     {
         // this method will not be invoked unless there is a subject present
         ...
@@ -130,13 +151,13 @@ public class MyController extends Controller
 @SubjectNotPresent
 public class MyController extends Controller
 {
-    public F.Promise<Result> index()
+    public CompletionStage<Result> index()
     {
         // this method will not be invoked if there is a subject present
         ...
     }
 
-    public F.Promise<Result> search()
+    public CompletionStage<Result> search()
     {
         // this method will not be invoked if there is a subject present
         ...
@@ -149,14 +170,14 @@ public class MyController extends Controller
 // Deny access to a single method of a controller if there is a user present
 public class MyController extends Controller
 {
-    public F.Promise<Result> index()
+    public CompletionStage<Result> index()
     {
         // this method is accessible to anyone
         ...
     }
 
     @SubjectNotPresent
-    public F.Promise<Result> search()
+    public CompletionStage<Result> search()
     {
         // this method will not be invoked unless there is not a subject present
         ...
@@ -201,13 +222,13 @@ The role names specified in the annotation can take two forms.
 @Restrict(@Group{"editor", "viewer"})
 public class MyController extends Controller
 {
-    public F.Promise<Result> index()
+    public CompletionStage<Result> index()
     {
         // this method will not be invoked unless the subject has editor and viewer roles
         ...
     }
 
-    public F.Promise<Result> search()
+    public CompletionStage<Result> search()
     {
         // this method will not be invoked unless the subject has editor and viewer roles
         ...
@@ -222,14 +243,14 @@ public class MyController extends Controller
 public class MyController extends Controller
 {
     @Restrict(@Group("editor"))
-    public F.Promise<Result> edit()
+    public CompletionStage<Result> edit()
     {
         // this method will not be invoked unless the subject has editor role
         ...
     }
 
     @Restrict(@Group("view"))
-    public F.Promise<Result> view()
+    public CompletionStage<Result> view()
     {
         // this method will not be invoked unless the subject has viewer role
         ...
@@ -242,13 +263,13 @@ public class MyController extends Controller
 @Restrict(@Group({"editor", "!viewer"}))
 public class MyController extends Controller
 {
-    public F.Promise<Result> edit()
+    public CompletionStage<Result> edit()
     {
         // this method will not be invoked unless the subject has editor role AND does NOT have the viewer role
         ...
     }
 
-    public F.Promise<Result> view()
+    public CompletionStage<Result> view()
     {
         // this method will not be invoked unless the subject has editor role AND does NOT have the viewer role
         ...
@@ -261,13 +282,13 @@ public class MyController extends Controller
 @Restrict({@Group("editor"), @Group("viewer")})
 public class MyController extends Controller
 {
-    public F.Promise<Result> index()
+    public CompletionStage<Result> index()
     {
         // this method will not be invoked unless the subject has editor or viewer roles
         ...
     }
 
-    public F.Promise<Result> search()
+    public CompletionStage<Result> search()
     {
         // this method will not be invoked unless the subject has editor or viewer roles
         ...
@@ -280,7 +301,7 @@ public class MyController extends Controller
 @Restrict({@Group({"customer", "viewer"}), @Group({"support", "viewer"})})
 public class MyController extends Controller
 {
-    public F.Promise<Result> index()
+    public CompletionStage<Result> index()
     {
         // this method will not be invoked unless the subject has customer and viewer,
         // or support and viewer roles
@@ -294,7 +315,7 @@ public class MyController extends Controller
 @Restrict({@Group("customer", "!viewer"), @Group("support", "!viewer")})
 public class MyController extends Controller
 {
-    public F.Promise<Result> index()
+    public CompletionStage<Result> index()
     {
         // this method will not be invoked unless the subject has customer but not viewer roles,
         // or support but not viewer roles
@@ -402,7 +423,7 @@ permissions to remove from the subject, e.g. (permissions of removed role) \ (pe
 {title="Using a role name to specify permissions", lang=java}
 ~~~~~~~
 @RoleBasedPermissions("foo")
-public F.Promise<Result> someMethod() 
+public CompletionStage<Result> someMethod() 
 {
     // the method will execute if the subject has one or more of the permissions obtained
     // via DeadboltHandler#getPermissionsForRole("fooa")
@@ -437,7 +458,7 @@ The most flexible constraint - this is a completely user-defined constraint that
 {title="Using a user-defined test to determine access", lang=java}
 ~~~~~~~
 @Dynamic(name = "name of the test")
-public F.Promise<Result> someMethod() 
+public CompletionStage<Result> someMethod() 
 {
     // the method will execute if the user-defined test returns true
 }
@@ -481,19 +502,20 @@ In the following example, one of four things can happen:
 {title="Inverting the test, not the need to have a subject", lang=java}
 ~~~~~~~
 @Override
-public F.Promise<Boolean> checkPermission(final String permissionValue,
-                                          final DeadboltHandler deadboltHandler,
-                                          final Http.Context ctx)
+public CompletionStage<Boolean> checkPermission(final String permissionValue,
+                                                final DeadboltHandler deadboltHandler,
+                                                final Http.Context ctx)
 {
     // just checking for zombies...just like I do every night before I go to bed
     return deadboltHandler.getSubject(ctx)
-                          .map(option -> 
+                          .thenApplyAsync(option -> 
         option.map(subject -> subject.getPermissions()
                                      .stream()
                                      .filter(perm -> perm.getValue().contains("zombie"))
                                      .count() > 0)
               .orElseGet(() -> (Boolean) ctx.args.getOrDefault(ConfigKeys.PATTERN_INVERT,
-                                                               false)));
+                                                               false)),
+                                          ec.current());
 }
 ~~~~~~~
 
@@ -522,7 +544,7 @@ So, in cases where we have a subject we just test like usual; the negation of th
 {title="Testing for equality of permissions", lang=java}
 ~~~~~~~
 @Pattern("admin.printer")
-public F.Promise<Result> someMethodA()
+public CompletionStage<Result> someMethodA()
 {
     // subject must have a permission with the exact value "admin.printer"
 }
@@ -532,7 +554,7 @@ public F.Promise<Result> someMethodA()
 {title="Testing for regex matching of permissions", lang=java}
 ~~~~~~~
 @Pattern(value = "(.)*\.printer", patternType = PatternType.REGEX)
-public F.Promise<Result> someMethodB() 
+public CompletionStage<Result> someMethodB() 
 {
     // subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer"
 }
@@ -542,7 +564,7 @@ public F.Promise<Result> someMethodB()
 {title="Using a user-defined test to determine access", lang=java}
 ~~~~~~~
 @Pattern(value = "something arbitrary", patternType = PatternType.CUSTOM)
-public F.Promise<Result> someMethodC() 
+public CompletionStage<Result> someMethodC() 
 {
     // the checkPermssion method of the current handler's DynamicResourceHandler will be used.  This is a user-defined test
 }
@@ -551,7 +573,7 @@ public F.Promise<Result> someMethodC()
 {title="Inverting the test", lang=java}
 ~~~~~~~
 @Pattern(value = "(.)*\.printer", patternType = PatternType.REGEX, invert = true)
-public F.Promise<Result> someMethodB() 
+public CompletionStage<Result> someMethodB() 
 {
     // subject must have no permissions that end in .printer
 }
@@ -567,13 +589,13 @@ public F.Promise<Result> someMethodB()
 @SubjectPresent
 public class MyController extends Controller
 {
-    public F.Promise<Result> foo()
+    public CompletionStage<Result> foo()
     {
         // a subject must be present for this to be accessible
     }
         
     @Unrestricted
-    public F.Promise<Result> bar()
+    public CompletionStage<Result> bar()
     {
         // anyone can access this action
     }
@@ -588,12 +610,12 @@ You can also flip this on its head, and use it to show that a controller is expl
 public class MyController extends Controller
 {
     @SubjectPresent
-    public F.Promise<Result> foo()
+    public CompletionStage<Result> foo()
     {
         // a subject must be present for this to be accessible
     }
         
-    public F.Promise<Result> bar()
+    public CompletionStage<Result> bar()
     {
         // anyone can access this action
     }
@@ -626,19 +648,17 @@ One way around this is to apply `Security.Authenticated` on every method, which 
 public class DeferredController extends Controller
 {
     @Security.Authenticated(Secured.class)
-    @Restrict(value="admin")
-    public F.Promise<Result> someAdminFunction()
+    @Restrict(value = "admin")
+    public CompletionStage<Result> someAdminFunction()
     {
-        return F.Promise.promise(accessOk::render)
-                        .map(Results::ok);
+        // logic
     }
 
     @Security.Authenticated(Secured.class)
-    @Restrict(value="editor")
-    public F.Promise<Result> someEditorFunction()
+    @Restrict(value = "editor")
+    public CompletionStage<Result> someEditorFunction()
     {
-        return F.Promise.promise(accessOk::render)
-                        .map(Results::ok);
+        // logic
     }
 }
 ~~~~~~~
@@ -651,18 +671,16 @@ A better way is to set the `deferred` parameter of the Deadbolt annotation to `t
 @DeferredDeadbolt
 public class DeferredController extends Controller
 {
-    @Restrict(value="admin", deferred=true)
-    public F.Promise<Result> someAdminFunction()
+    @Restrict(value = "admin", deferred = true)
+    public CompletionStage<Result> someAdminFunction()
     {
-        return F.Promise.promise(accessOk::render)
-                        .map(Results::ok);
+        // logic
     }
 
-    @Restrict(value="editor", deferred=true)
-    public F.Promise<Result> someEditorFunction()
+    @Restrict(value = "editor", deferred = true)
+    public CompletionStage<Result> someEditorFunction()
     {
-        return F.Promise.promise(accessOk::render)
-                        .map(Results::ok);
+        // logic
     }
 }
 ~~~~~~~
@@ -672,13 +690,15 @@ Specifying a controller-level restriction as `deferred` will work, if the annota
 {pagebreak}
 
 ## Invoking DeadboltHandler#beforeAuthCheck independently
-`DeadboltHandler#beforeAuthCheck` is invoked by each interceptor prior to running the actual constraint tests.  If the method call returns an empty `Optional`, the constraint is applied, otherwise the contained in the `Optional` result is returned.  The same logic can be invoked independently, using the `@BeforeAccess` annotation, in which case the call to `beforeRoleCheck` itself becomes the constraint.  Or, to say it in code,
+`DeadboltHandler#beforeAuthCheck` is invoked by each interceptor prior to running the actual constraint tests.  If the method call returns an empty `Optional`, the constraint is applied, otherwise the `Result` contained in the `Optional` is returned.  The same logic can be invoked independently, using the `@BeforeAccess` annotation, in which case the call to `beforeRoleCheck` itself becomes the constraint.
 
 {lang=java}
 ~~~~~~~
-result = preAuth(true, ctx, deadboltHandler)
-          .flatMap(preAuthResult -> preAuthResult.map(F.Promise::pure)
-                                                 .orElseGet(() -> delegate.call(ctx))
+@BeforeAccess
+public CompletionStage<Result> someFunction()
+{
+    // logic
+}
 ~~~~~~~
 
 `@BeforeAccess` can be used at the class or method level.
@@ -760,7 +780,7 @@ The code above contains `@With(CustomRestrictAction.class)` in order to specify 
 {title="Mapping custom roles to Deadbolt's requirements", lang=java}
 ~~~~~~~
 @Override
-public Result call(Http.Context context) throws Throwable
+public CompletionStage<Result> call(Http.Context context) throws Throwable
 {
     final CustomRestrict outerConfig = configuration;
     final RestrictAction restrictAction = new RestrictAction(configuration.config(),
@@ -791,10 +811,12 @@ To use your custom annotation, you apply it as you would any other Deadbolt anno
 {title="Using custom roles", lang=java}
 ~~~~~~~
 @CustomRestrict(value = {MyRoles.foo, MyRoles.bar}, config = @Restrict(""))
-public static F.Promise<Result> customRestrictOne() 
+public static CompletionStage<Result> customRestrictOne() 
 {
-    return F.Promise.promise(accessOk::render)
-                    .map(Results::ok);
+    return CompletableFuture.supplyAsync(accessOk::render,
+                                         ec.current())
+                            .thenApplyAsync(Results::ok,
+                                            ec.current());
 }
 ~~~~~~~
 
