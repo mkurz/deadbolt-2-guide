@@ -334,7 +334,7 @@ Subject B has been assigned the following:
 
 - Roles
  - `admin`
-`it`
+ - `it`
 - Permissions
  - `admin.it.printer`
  - `admin.it.ldap`
