@@ -9,12 +9,12 @@ DeadboltHandler implementations should be stateless.
 
 For each method, a `CompletionStage` is returned - this is Java 8 interface for a future.  If the future may complete to have an empty value, e.g. calling `getSubject` when no subject is present, the return type is `CompletionStage<Optional>`.
 
-An application may have one or more handler implementations, which will be explored when we discuss the `HandlerCache`.  Despite the use of the definite article in the section title, you can have as many Deadbolt handlers in your app as you wish.  These can be specified on a per-constraint basis, allowing tight contol over your authorization configuration if required. 
+An application may have one or more handler implementations, which will be explored when we discuss the `HandlerCache`.  Despite the use of the definite article in the section title, you can have as many Deadbolt handlers in your app as you wish.  These can be specified on a per-constraint basis, allowing tight control over your authorization configuration if required.
 
 ### AbstractDeadboltHandler
 Deadbolt provides an abstract implementation of `DeadboltHandler`, called - in time-honoured fashion - `AbstractDeadboltHandler`.  This provides the following behaviour:
 
-* No pre-authorization operations are carried out; a future containg an empty option is returned.
+* No pre-authorization operations are carried out; a future containing an empty option is returned.
 * No subject is present; a future containing an empty option is returned.
 * No dynamic resource handler is present; as you can probably guess by now, a future containing an empty option is returned.
 * Authorization failure gives the standard Play unauthorized template rendered into a HTTP 401 response.
@@ -37,9 +37,9 @@ public CompletionStage<Result> onAuthFailure(final Http.Context context,
 ### Performing pre-constraint operations
 Before a constraint is applied, the `CompletionStage<Optional<Result>> beforeAuthCheck(Http.Context context)` method of the current handler is invoked.  If the resulting promise completes to a non-empty `Optional`, the target action is not invoked and instead the result of `beforeAuthCheck` is used for the HTTP response; if the resulting promise completes to an empty `Optional` the action is invoked with the Deadbolt constraint applied to it.
 
-You may want to use this method to test if a subject is present.  However, it's important to be aware that this approach will actually shortcut the use of some annotations and result in inconsistent behaviour.  The simplest example is the "subject not present" constraint, which requires no subject to be present for the action to be authorized.  If you pre-emptively check for a subject in `beforeAuthCheck` and fail if one isn't present, this means the "subject not present" check will fail!  It's recommended to use the constraints to drive this behaviour, and handle the consequences of failure in the `onAccessFailure` method. 
+You may want to use this method to test if a subject is present.  However, it's important to be aware that this approach will actually shortcut the use of some annotations and result in inconsistent behaviour.  The simplest example is the "subject not present" constraint, which requires no subject to be present for the action to be authorized.  If you pre-emptively check for a subject in `beforeAuthCheck` and fail if one isn't present, this means the "subject not present" check will fail!  It's recommended to use the constraints to drive this behaviour, and handle the consequences of failure in the `onAccessFailure` method.
 
-If you don't want to carry out any action before authorization constraints are applied, just return a completed future containng an empty option.  Alternatively, extend `AbstractDeadboltHandler` and do not override this method.
+If you don't want to carry out any action before authorization constraints are applied, just return a completed future containing an empty option.  Alternatively, extend `AbstractDeadboltHandler` and do not override this method.
 
 ### Obtaining the subject
 To get the current subject, the `CompletionStage<Optional<Subject>> getSubject(Http.Context context)` method is invoked.  Returning an empty `Optional` indicates there is no subject present - this is a completely valid scenario, typically indicating no successful authentication has yet taken place.
@@ -55,7 +55,7 @@ When authorization fails, the `CompletionStage<Result> onAccessFailure(Http.Cont
 ### Dealing with dynamic constraints
 Dynamic constraints, which are `Dynamic` and `Pattern.CUSTOM` constraints, are dealt with by implementations of `DynamicResourceHandler`; this will be explored in a later chapter.  For now, it's enough to say `CompletionStage<Optional<DynamicResourceHandler>> getDynamicResourceHandler(Http.Context context)` is invoked when a dynamic constraint is used.
 
-If you don't have any dynamic constraints, just return a completed future containng an empty option.  Alternatively, extend `AbstractDeadboltHandler` and do not override this method.
+If you don't have any dynamic constraints, just return a completed future containing an empty option.  Alternatively, extend `AbstractDeadboltHandler` and do not override this method.
 
 
 ## Expose your DeadboltHandlers with a HandlerCache
@@ -86,7 +86,7 @@ public enum HandlerKeys
 }
 ~~~~~~~
 
-Here's one possible implementation, using hard-coded handlers.  `defaultHandler` is kept separate to make the `get` method more efficient, instead up looking it up in the ´handlers` map every time. 
+Here's one possible implementation, using hard-coded handlers.  `defaultHandler` is kept separate to make the `get` method more efficient, instead up looking it up in the `handlers` map every time.
 
 {title="Defining hard-coded handlers", lang=java}
 ~~~~~~~
@@ -121,7 +121,7 @@ Ideally, handler implementations should be self-sufficient.  To this end, the `D
 {title="Overriding the handler name", lang=java}
 ~~~~~~~
 public class MyDeadboltHandler implements DeadboltHandler {
-    
+
     // ...
 
     public String handlerName() {
@@ -213,7 +213,7 @@ These annotations can then be used to tag specific implementations in a way that
 public class MyDeadboltHandler implements DeadboltHandler
 ~~~~~~~
 
-The ´bindings´ method of the module needs to be updated to be aware of the handler implementations.
+The `bindings` method of the module needs to be updated to be aware of the handler implementations.
 
 {title="Use annotations to label implementations", lang=java}
 ~~~~~~~
@@ -243,7 +243,7 @@ public class MyHandlerCache implements HandlerCache {
     private final DeadboltHandler defaultHandler;
 
     @Inject
-    public MyHandlerCache(@HandlerQualifiers.MainHandler 
+    public MyHandlerCache(@HandlerQualifiers.MainHandler
                                 final DeadboltHandler defaultHandler,
                           @HandlerQualifiers.AltHandler final DeadboltHandler altHandler) {
         this.defaultHandler = defaultHandler;
