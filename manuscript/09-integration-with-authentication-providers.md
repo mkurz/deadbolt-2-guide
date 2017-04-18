@@ -1,7 +1,7 @@
 # Integrating with authentication providers
 
 Authorization is all well and good, but some constraints are pointless if the user is not known to the application.  You could write a `Dynamic` constraint that only allows access on Thursdays - this doesn't need to know anything about even the concept of a user; a `Restrict` constraint, on the other hand, uses `Roles` obtained from a `Subject`.  The question is, what is a subject and how do we know who it is?
-  
+
 Imagine an application where you can post short messages and read the messages of others, something along the lines of Twitter.  By default, you can read any message on the system unless the user has marked that message as restricted to only users who are logged into the application..  In order to write a message, you have to have an account and be logged in.  We can sketch out a controller for this very simple application thus:
 
 
@@ -82,14 +82,14 @@ public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
 }
 ~~~~~~~
 
-This has the net effect of not getting in the way of the constraint; with this implementation, a user accessing `/messages` in our little application would receive a 403.  But, our application aims to be well behaved and return a 401 when it's needed, so a little more work is required.  Because `beforeAuthCheck` is only called when a constraint has been applied, we can use this to trigger an authenication request if needed.  In this application, we're going to say that every constraint requires an authenticated subject to be present - do not confuse this with `@SubjectPresent` constraints in the example controller, the same would equally be true if we were using `@Restrict` or `@Pattern`.  For the more advanced app that uses the subject-less dynamic rule of Thursdays-only, either more logic is required or (preferably) a different `DeadboltHandler` implementation is used.
+This has the net effect of not getting in the way of the constraint; with this implementation, a user accessing `/messages` in our little application would receive a 403.  But, our application aims to be well behaved and return a 401 when it's needed, so a little more work is required.  Because `beforeAuthCheck` is only called when a constraint has been applied, we can use this to trigger an authentication request if needed.  In this application, we're going to say that every constraint requires an authenticated subject to be present - do not confuse this with `@SubjectPresent` constraints in the example controller, the same would equally be true if we were using `@Restrict` or `@Pattern`.  For the more advanced app that uses the subject-less dynamic rule of Thursdays-only, either more logic is required or (preferably) a different `DeadboltHandler` implementation is used.
 
 The logic here is simple - if a user is present, no action is required otherwise short-cut the request with a 401 response.
 
 {title="Requiring a subject", lang=java}
 ~~~~~~~
 public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
-    return getSubject(context).map(maybeSubject -> 
+    return getSubject(context).map(maybeSubject ->
         maybeSubject.map(subject -> Optional.<Result>empty())
                     .orElseGet(() -> Optional.of(Results.unauthorized())));
 }
@@ -97,7 +97,7 @@ public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
 
 On the other hand, you may choose to never implement any logic in `beforeAuthCheck` and instead have the behaviour driven by authorization failure.  The choice is entirely in the hands of the implementor; personally, I tend to use `onAuthFailure` to handle the 401/403 behaviour, because it removes the assumptions required by implementing checks in `beforeAuthCheck`.
 
-It will become very clear, very quickly, the same approach is used for all authentication systems; this means that swapping out authentication without affecting authorization is both possible and trivial.  We'll start with the built-in authentication mechanism of Play and adapt from there; with surprisingly few changes, you'll see how we can move from basic authentication through to using anything from Play-specific OAuth libraries such as [Play Authenticate](https://joscha.github.io/play-authenticate/) and even HTTP calls to dedicated identity platforms such as [Auth0](https://auth0.com/). 
+It will become very clear, very quickly, the same approach is used for all authentication systems; this means that swapping out authentication without affecting authorization is both possible and trivial.  We'll start with the built-in authentication mechanism of Play and adapt from there; with surprisingly few changes, you'll see how we can move from basic authentication through to using anything from Play-specific OAuth libraries such as [Play Authenticate](https://joscha.github.io/play-authenticate/) and even HTTP calls to dedicated identity platforms such as [Auth0](https://auth0.com/).
 
 ## Play's built-in authentication support
 
@@ -134,7 +134,7 @@ public class AuthenticationSupport extends Security.Authenticator {
     public AuthenticationSupport(final UserDao userDao) {
         this.userDao = userDao;
     }
-    
+
     @Override
     public String getUsername(final Http.Context context) {
         return getTokenFromHeader(context).flatMap(userDao::findByToken)
@@ -181,14 +181,14 @@ public class MyDeadboltHandler extends AbstractDeadboltHandler {
 
     @Override
     public F.Promise<Optional<Result>> beforeAuthCheck(final Http.Context context) {
-        return getSubject(context).map(maybeSubject -> 
+        return getSubject(context).map(maybeSubject ->
             maybeSubject.map(subject -> Optional.<Result>empty())
                         .orElseGet(() -> Optional.of(Results.unauthorized())));
     }
 
     @Override
     public F.Promise<Optional<Subject>> getSubject(final Http.Context context) {
-        return F.Promise.promise(() -> 
+        return F.Promise.promise(() ->
             Optional.ofNullable(authenticator.getUsername(context))
                     .flatMap(userDao::findByUserName)
                     .map(user -> user));
@@ -244,7 +244,7 @@ I like the concept of third-party user (or identity) management.  It minimizes s
 
 * the initial authentication
 * subsequent use of cached user details
-* re-retrieving user details when the cache doen't contain them
+* re-retrieving user details when the cache doesn't contain them
 * re-authenticating when the user's authentication has expired on the user management platform
 
 If you're using Deadbolt, it's reasonable to assume you have one of two security models - either all actions require authorization or some actions require authorization, and that authorization may simply be "a user must be present".  As a result, the point the initial authentication occurs depends on your application.  The good news, as far as this requirement goes, is the implementation is both quite simple and common to all cases.  It comes down to the implementation of the `onAuthFailure` method of your `DeadboltHandler`, and might look something like this:
@@ -258,15 +258,15 @@ public F.Promise<Result> onAuthFailure(final Http.Context context,
 }
 ~~~~~~~
 
-But wait, this is wrong!  As discussed above, this assumes that all authorization failure occurs because there is no user present, and this ignores the difference between `401 Unauthorized` and `403 Forbidden`.  A better implementation wiil take this into account, by checking if there is a subject present.  If there is a subject present, it's a 403; if there isn't, it's a 401 and we can redirect to somewhere the user can log in.
+But wait, this is wrong!  As discussed above, this assumes that all authorization failure occurs because there is no user present, and this ignores the difference between `401 Unauthorized` and `403 Forbidden`.  A better implementation will take this into account, by checking if there is a subject present.  If there is a subject present, it's a 403; if there isn't, it's a 401 and we can redirect to somewhere the user can log in.
 
 
 {title="Triggering authentication when authorization fails", lang=java}
 ~~~~~~~
 public F.Promise<Result> onAuthFailure(final Http.Context context,
                                        final String contentType) {
-    return getSubject(context).map(maybeSubject -> 
-        maybeSubject.map(subject -> 
+    return getSubject(context).map(maybeSubject ->
+        maybeSubject.map(subject ->
             Optional.of((User)subject))
                     .map(denied::render)
                     .orElseGet(() -> login.render()))
@@ -283,17 +283,17 @@ public F.Promise<Result> onAuthFailure(final Http.Context context,
                                        final String s) {
     return getSubject(context)
             .map(maybeSubject ->
-                         maybeSubject.map(subject -> 
+                         maybeSubject.map(subject ->
                                               Optional.of((User)subject))
-                                     .map(user -> 
+                                     .map(user ->
                                               new F.Tuple<>(true,
                                                             denied.render(user)))
-                                     .orElseGet(() -> 
+                                     .orElseGet(() ->
                                               new F.Tuple<>(false,
                                                             login.render(clientId,
                                                                          domain,
                                                                          redirectUri))))
-            .map(subjectPresentAndContent -> 
+            .map(subjectPresentAndContent ->
                      subjectPresentAndContent._1
                          ? Results.forbidden(subjectPresentAndContent._2)
                          : Results.unauthorized(subjectPresentAndContent._2));
@@ -507,15 +507,15 @@ public F.Promise<Result> onAuthFailure(final Http.Context context,
     return getSubject(context)
             .map(maybeSubject ->
                          maybeSubject.map(subject -> Optional.of((User)subject))
-                                     .map(user -> 
+                                     .map(user ->
                                           new F.Tuple<>(true,
                                           denied.render(user)))
-                                     .orElseGet(() -> 
+                                     .orElseGet(() ->
                                           new F.Tuple<>(false,
                                                         login.render(clientId,
                                                                      domain,
                                                                      redirectUri))))
-            .map(subjectPresentAndContent -> 
+            .map(subjectPresentAndContent ->
                      subjectPresentAndContent._1
                          ? Results.forbidden(subjectPresentAndContent._2)
                          : Results.unauthorized(subjectPresentAndContent._2));

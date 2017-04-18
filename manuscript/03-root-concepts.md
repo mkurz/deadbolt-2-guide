@@ -26,7 +26,7 @@ Template security is like painted hardboard - the features it offers are certain
 
 
 ## Controller-level restrictions
-The controller layer is most vulnerable part of your application to external attack, because that is the part that is visible to whichever networks it is on.  Attack in this sense may be a conscious attack on your system, or inadvertant damage caused by unauthorized users who are otherwise authenticated in your system.  Deadbolt can help with both of these scenarios in the same way, by limiting the capabilities of any given user at the application level.
+The controller layer is most vulnerable part of your application to external attack, because that is the part that is visible to whichever networks it is on.  Attack in this sense may be a conscious attack on your system, or inadvertent damage caused by unauthorized users who are otherwise authenticated in your system.  Deadbolt can help with both of these scenarios in the same way, by limiting the capabilities of any given user at the application level.
 
 
 Controller authorization blocks or allows access to an action.  Whereas template restrictions are essentially a boolean evaluation - "if user satisfies these conditions, then...", controller authorization is quite a bit more powerful.  Specifically, while an authorized result is generated from your application code, unauthorized results can be customised as required; you can return any status code you like along with any content you like.  If you're feeling particularly nasty, why not send a 302 redirect to a not-suitable-for-work website?  If you want to, the option is there.
@@ -38,9 +38,9 @@ Deadbolt has three interfaces which can be used to represent authorization entit
 ### Subject
 A subject represents an authorizable entity - in other words, a user or account.  A subject embodies four pieces of information - the fact a user is (or isn't) authenticated, that user's identity, and that user's roles and permissions.
 
-Depending on the application you're building, you may always have a subject present - call it Guest, for example.  This subject may have a very restricted set of roles and/or permissions.  Alternatively, you may require explicit authentication for some or all of the application, in which case it's possible no subject is present. 
+Depending on the application you're building, you may always have a subject present - call it Guest, for example.  This subject may have a very restricted set of roles and/or permissions.  Alternatively, you may require explicit authentication for some or all of the application, in which case it's possible no subject is present.
 
-Fun fact - `Subject` was originally known as `RoleHolder`, but this swiftly became an anacronysm as Deadbolt gained capabilities beyond checking roles.  As of Deadbolt 2.0, `RoleHolder` became ´Subject´.
+Fun fact - `Subject` was originally known as `RoleHolder`, but this swiftly became an anachronism as Deadbolt gained capabilities beyond checking roles.  As of Deadbolt 2.0, `RoleHolder` became ´Subject´.
 
 
 ### Role
@@ -75,6 +75,6 @@ Deadbolt supports two categories of constraint - static and dynamic.  This is a 
 
 A static constraint is one that requires no further effort on the part of the developer, because the necessary information can be determined from the `DeadboltHandler` and the `Subject`.  For example, the "is a subject present?" constraint can be answered by requesting the subject from the handler; similarly, group membership can be determined by requesting a subject's roles and testing them for the required values.  Simply put, a static constraint is one in which the developer specifies *what* they want and Deadbolt handles the *how* based on existing information.
 
-Dynamic constraints, on the other hand, require work by the developer.  They embody arbitrary logic, and have total freedom as long as they eventually return a result.  For example, you may have a business rule that a user on subscription plan x can only make y calls to an API within z amount of time - this could be implemented as a dynamic constraint.Dynamic constraints are exposed via the `DynamicResourceHandler` (in retrospect, I probably should have called it `DynamicConstraintHandler`...) and will be discussed in detail in the language-specific chapters. 
+Dynamic constraints, on the other hand, require work by the developer.  They embody arbitrary logic, and have total freedom as long as they eventually return a result.  For example, you may have a business rule that a user on subscription plan x can only make y calls to an API within z amount of time - this could be implemented as a dynamic constraint.Dynamic constraints are exposed via the `DynamicResourceHandler` (in retrospect, I probably should have called it `DynamicConstraintHandler`...) and will be discussed in detail in the language-specific chapters.
 
-One small but pertinent fact regarding dynamic constraints is they don't *necessarily* require subjects; if you write a constraint that does not need a subject, the presence or absence of a subject is irrelevent.  If your boss, in a bizarre act of caprice, decides that no-one can have access to the accounting system on a Tuesday, the constraint would essentially be `if (day == tuesday)...`; the subject is not needed and so not used.
+One small but pertinent fact regarding dynamic constraints is they don't *necessarily* require subjects; if you write a constraint that does not need a subject, the presence or absence of a subject is irrelevant.  If your boss, in a bizarre act of caprice, decides that no-one can have access to the accounting system on a Tuesday, the constraint would essentially be `if (day == Tuesday)...`; the subject is not needed and so not used.

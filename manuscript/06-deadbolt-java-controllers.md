@@ -1,9 +1,9 @@
 # Java controller constraints
-If you like annotations in Java code, you're in for a treat.  If you don't, this may be a good time to consider the Scala version.  Actually, that's not strictly true - it also turns out that if you take long enough to write a book, you add new features that allow constraints to be applied during routing; we'll get to that later, I just didn't want you to panic at the thought of yet more annotations in your code. 
+If you like annotations in Java code, you're in for a treat.  If you don't, this may be a good time to consider the Scala version.  Actually, that's not strictly true - it also turns out that if you take long enough to write a book, you add new features that allow constraints to be applied during routing; we'll get to that later, I just didn't want you to panic at the thought of yet more annotations in your code.
 
 One very important point to bear in mind is the order in which Play evaluates annotations.  Annotations applied to a method are applied to annotations applied to a class.  This can lead to situations where Deadbolt method constraints deny access because information from a class constraint.  See the section on deferring method-level interceptors for a solution to this.
 
-As with the previous chapter, here is a a breakdown of all the Java annotation-driven interceptors available in Deadbolt Java, with parameters, usages and tips and tricks.  Anywhere you see `ec.current()`, this is obtaining a `java.util.concurrent.Executor` from the `HttpExecutionContext` which has been injected into the controller.  To avoid repeating it in every example, assume that each example method exists in a controller similar to the following.
+As with the previous chapter, here is a breakdown of all the Java annotation-driven interceptors available in Deadbolt Java, with parameters, usages and tips and tricks.  Anywhere you see `ec.current()`, this is obtaining a `java.util.concurrent.Executor` from the `HttpExecutionContext` which has been injected into the controller.  To avoid repeating it in every example, assume that each example method exists in a controller similar to the following.
 
 {title="Injecting the controller with an execution context", lang=java}
 ~~~~~~~
@@ -51,7 +51,7 @@ The dynamic constraints available are
 
 Now you mention it, you can combine all of the above in arbitrary compositions to define constraint trees.  These can be applied using the `Composite` annotation.
 
-{pagebreak} 
+{pagebreak}
 
 ## SubjectPresent
 
@@ -108,7 +108,7 @@ public class MyController extends Controller
 }
 ~~~~~~~
 
-{pagebreak} 
+{pagebreak}
 
 ## SubjectNotPresent
 
@@ -175,7 +175,7 @@ The Restrict constraint requires that a) there is a subject present, and b) the 
 The role names specified in the annotation can take two forms.
 
 1. Exact form - the subject must have a role whose name matches the required role exactly.  For example, for a constraint `@Restrict("foo")` the Subject *must* have a `Role` whose name is "foo".
-2. Negated form - if the required role starts starts with a !, the constraint is negated.  For example, for a constraint `@Restrict("!foo")` the Subject *must not* have a `Role` whose name is "foo".
+2. Negated form - if the required role starts with a !, the constraint is negated.  For example, for a constraint `@Restrict("!foo")` the Subject *must not* have a `Role` whose name is "foo".
 
 `@Restrict` can be used at the class or method level.
 
@@ -296,11 +296,11 @@ public class MyController extends Controller
 }
 ~~~~~~~
 
-{pagebreak} 
+{pagebreak}
 
 ## RoleBasedPermissions
 
-Roles and permissions are separate concepts. Roles do not imply permissions, and vice versa. 
+Roles and permissions are separate concepts. Roles do not imply permissions, and vice versa.
 
 Roles are inherently tied to `Restrict` , so when `@Restrict` is used it uses `Subject#getRoles` and looks if the subject has the required role. If multiple (i.e. `AND`) or alternative (i.e. `OR`) relationships are defined - let's say `@Restrict(@Group({"admin", "printer"}))`, in which a subject must have the (admin AND printer) roles - that is also handled. This is done through a straightforward comparison of the required role name and the name of the roles the subject has, obtained via `Role#getName`.
 
@@ -330,7 +330,7 @@ Subject B has been assigned the following:
 
 A controller action annotated with `@Restrict(@Group("admin"))` would be accessible to both subject A and subject B, even though they are admins in different departments. To restrict the action to admins of the IT department, you would need to use `@Restrict(@Group({"admin", "it"}))`.
 
-A controller action annotated with `@Pattern("admin.*")` would be accessible to both subject A and subject B, even though they are admins in different departments. To restrict the action to admins of the IT department, you would need to use 
+A controller action annotated with `@Pattern("admin.*")` would be accessible to both subject A and subject B, even though they are admins in different departments. To restrict the action to admins of the IT department, you would need to use
 `@Pattern("admin.it.*")`.
 
 However - and here's the important bit - removing the admin role from a user would deny them access to actions marked with `@Restrict(@Group("admin"))` but still allow them access to actions marked with `@Pattern("admin.*")`.  If you only use roles or only use permissions, this isn't an issue.  If you do use both, it can lead to inconsistencies and indeterminate authorizations.
@@ -350,7 +350,7 @@ This is similar to using `@Pattern`, except that you can only constraint access 
 
 Using `@RoleBasedPermissions("foo")`, you can constrain access to a subject with any of those permissions. However, if you want to have an access to an action constrained to subjects with `admin.pr.twitter permissions`, you can target a subset of subjects with the `foo` role using `@Pattern("admin.pr.twitter.*")`. In practice, you may not want to mix the different approaches but the possibility is there.
 
-This still doesn't provide a mechanism for assigning those permissions to a subject when a role is assigned, because this ismore properly something that should be handled by the application itself. This could be done by injecting the handler cache into your user management code, which can then be used to obtain the default handler, and when a subject is given a role, use `DeadboltHandler#getPermissionsForRole` to find out which permissions to assign the subject at the same time. This make a small assumption: even if you have multiple handlers, the result of `DeadboltHandler#getPermissionsForRole` would always be the same for any given role.
+This still doesn't provide a mechanism for assigning those permissions to a subject when a role is assigned, because this is more properly something that should be handled by the application itself. This could be done by injecting the handler cache into your user management code, which can then be used to obtain the default handler, and when a subject is given a role, use `DeadboltHandler#getPermissionsForRole` to find out which permissions to assign the subject at the same time. This make a small assumption: even if you have multiple handlers, the result of `DeadboltHandler#getPermissionsForRole` would always be the same for any given role.
 
 Equally, when removing a role from a subject, `DeadboltHandler#getPermissionsForRole` can be used to determine the subset of permissions to remove from the subject, e.g. (permissions of removed role) \ (permissions of all other roles held by subject).
 
@@ -367,14 +367,14 @@ Equally, when removing a role from a subject, `DeadboltHandler#getPermissionsFor
 {title="Using a role name to specify permissions", lang=java}
 ~~~~~~~
 @RoleBasedPermissions("foo")
-public CompletionStage<Result> someMethod() 
+public CompletionStage<Result> someMethod()
 {
     // the method will execute if the subject has one or more of the permissions obtained
     // via DeadboltHandler#getPermissionsForRole("fooa")
 }
 ~~~~~~~
 
-{pagebreak} 
+{pagebreak}
 
 ## Dynamic
 
@@ -397,13 +397,13 @@ The most flexible constraint - this is a completely user-defined constraint that
 {title="Using a user-defined test to determine access", lang=java}
 ~~~~~~~
 @Dynamic(name = "name of the test")
-public CompletionStage<Result> someMethod() 
+public CompletionStage<Result> someMethod()
 {
     // the method will execute if the user-defined test returns true
 }
 ~~~~~~~
 
-{pagebreak} 
+{pagebreak}
 
 ## Pattern
 
@@ -413,7 +413,7 @@ This uses the Subjects Permissions to perform a variety of checks.
 
 - EQUALITY - the subject must have a permission whose value is exactly the same as the `value` parameter
 - REGEX - the subject must have a permission which matches the regular expression given in the `value` parameter
-- CUSTOM - the `DynamicResourceHandler#checkPermission` function is used to determine access 
+- CUSTOM - the `DynamicResourceHandler#checkPermission` function is used to determine access
 
 It's possible to invert the constraint by setting the `invert` parameter to true.  This changes the meaning of the constraint in the following way.
 
@@ -447,7 +447,7 @@ public CompletionStage<Boolean> checkPermission(final String permissionValue,
 {
     // just checking for zombies...just like I do every night before I go to bed
     return deadboltHandler.getSubject(ctx)
-                          .thenApplyAsync(option -> 
+                          .thenApplyAsync(option ->
         option.map(subject -> subject.getPermissions()
                                      .stream()
                                      .filter(perm -> perm.getValue().contains("zombie"))
@@ -490,7 +490,7 @@ public CompletionStage<Result> someMethodA()
 {title="Testing for regex matching of permissions", lang=java}
 ~~~~~~~
 @Pattern(value = "(.)*\.printer", patternType = PatternType.REGEX)
-public CompletionStage<Result> someMethodB() 
+public CompletionStage<Result> someMethodB()
 {
     // subject must have a permission that matches the regular expression (without quotes) "(.)*\.printer"
 }
@@ -500,7 +500,7 @@ public CompletionStage<Result> someMethodB()
 {title="Using a user-defined test to determine access", lang=java}
 ~~~~~~~
 @Pattern(value = "something arbitrary", patternType = PatternType.CUSTOM)
-public CompletionStage<Result> someMethodC() 
+public CompletionStage<Result> someMethodC()
 {
     // the checkPermssion method of the current handler's DynamicResourceHandler will be used.  This is a user-defined test
 }
@@ -509,7 +509,7 @@ public CompletionStage<Result> someMethodC()
 {title="Inverting the test", lang=java}
 ~~~~~~~
 @Pattern(value = "(.)*\.printer", patternType = PatternType.REGEX, invert = true)
-public CompletionStage<Result> someMethodB() 
+public CompletionStage<Result> someMethodB()
 {
     // subject must have no permissions that end in .printer
 }
@@ -529,7 +529,7 @@ public class MyController extends Controller
     {
         // a subject must be present for this to be accessible
     }
-        
+
     @Unrestricted
     public CompletionStage<Result> bar()
     {
@@ -550,7 +550,7 @@ public class MyController extends Controller
     {
         // a subject must be present for this to be accessible
     }
-        
+
     public CompletionStage<Result> bar()
     {
         // anyone can access this action
@@ -645,7 +645,7 @@ public CompletionStage<Result> someFunction()
 ## Customising the inputs of annotation-driven actions
 One of the problems with Deadbolt's annotations is they require strings to specify, for example, role names or pattern values.  It would be far safer to use enums, but this is not possible for a module - it would completely kill the generic applicability of the annotations.  If Deadbolt shipped with an enum containing roles, how would you extend it?  You would be stuck with whatever was specified, or forced to fork the codebase and customise it.  Similarly, annotations can neither implement interfaces or be extended.
 
-To address this situation, Deadbolt has three constraints whose inputs can be customised to some degree.  The trick lies, not with inheritence, but delegation and wrapping.  The constraints are
+To address this situation, Deadbolt has three constraints whose inputs can be customised to some degree.  The trick lies, not with inheritance, but delegation and wrapping.  The constraints are
 
  * Restrict
  * Dynamic
@@ -683,7 +683,7 @@ public @interface MyRolesGroup
 }
 ~~~~~~~
 
-Next, create a new annotation to drive your custom version of Restrict.  Note that an array of `MyRoles` values can be placed in the annotation.  The standard `Restrict` annotation is also present to provide further configuration.  This means your customisations are minimised. 
+Next, create a new annotation to drive your custom version of Restrict.  Note that an array of `MyRoles` values can be placed in the annotation.  The standard `Restrict` annotation is also present to provide further configuration.  This means your customisations are minimised.
 
 {title="Defining a custom entry point", lang=java}
 ~~~~~~~
@@ -700,7 +700,7 @@ public @interface CustomRestrict
 }
 ~~~~~~~
 
-The code above contains `@With(CustomRestrictAction.class)` in order to specify the action that should be triggered by the annotation.  This action can be implemented as follows. 
+The code above contains `@With(CustomRestrictAction.class)` in order to specify the action that should be triggered by the annotation.  This action can be implemented as follows.
 
 {title="Mapping custom roles to Deadbolt's requirements", lang=java}
 ~~~~~~~
@@ -736,7 +736,7 @@ To use your custom annotation, you apply it as you would any other Deadbolt anno
 {title="Using custom roles", lang=java}
 ~~~~~~~
 @CustomRestrict(value = {MyRoles.foo, MyRoles.bar}, config = @Restrict(""))
-public static CompletionStage<Result> customRestrictOne() 
+public static CompletionStage<Result> customRestrictOne()
 {
     return CompletableFuture.supplyAsync(accessOk::render,
                                          ec.current())
@@ -752,6 +752,6 @@ Each customisable action has one or more extension points.  These are
 |RestrictAction     | * List<String[]> getRoleGroups() |
 |-------------------|----------------------------------|
 |DynamicAction      | * String getValue()              |
-|                   | * String getMeta()               | 
+|                   | * String getMeta()               |
 |-------------------|----------------------------------|
 |PatternAction      | * String getValue()              |
