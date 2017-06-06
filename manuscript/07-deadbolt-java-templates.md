@@ -226,7 +226,7 @@ Use `Subject`s `Role`s to perform AND/OR/NOT checks.  The values given to the bu
 AND is defined as an `Array[String]`, OR is a `List[Array[String]]`, and NOT is a rolename with a `!` preceding it.
 
 `anyOf` and `allOf` are convenience methods for creating a `List[Array[String]]` and an `Array[String]`.  There is also `allOfGroup`, which 
-allows `anyOf(allOf("foo"))` to be written as `allOfGroup("foo")`.  They can be imported using `@import be.objectify.deadbolt.core.utils.TemplateUtils.{anyOf, allOf, allOfGroup}`.  
+allows `anyOf(allOf("foo"))` to be written as `allOfGroup("foo")`.  They can be imported using `@import be.objectify.deadbolt.java.utils.TemplateUtils.{anyOf, allOf, allOfGroup}`.  
 
 I> In earlier versions of Deadbolt, `anyOf` and `allOf` were called the far shorter and less succinct `la` (list of arrays) and `as` (array of strings).  These methods are still available, but are deprecated.
 
